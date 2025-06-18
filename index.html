@@ -1,24 +1,51 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>routine-agenda-craft</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
+    <title>Routinely - Agenda e Produtividade</title>
+    <meta name="description" content="Aplicação de agenda semanal, tarefas e notas para produtividade" />
+    <meta name="author" content="Routinely" />
+    <meta name="theme-color" content="#4A90E2" />
 
-    <meta property="og:title" content="routine-agenda-craft" />
-    <meta property="og:description" content="Lovable Generated Project" />
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Icons -->
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta property="og:title" content="Routinely - Agenda e Produtividade" />
+    <meta property="og:description" content="Aplicação de agenda semanal, tarefas e notas para produtividade" />
+    <meta property="og:image" content="/icon-512.png" />
 
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta name="twitter:title" content="Routinely - Agenda e Produtividade" />
+    <meta name="twitter:description" content="Aplicação de agenda semanal, tarefas e notas para produtividade" />
+    <meta name="twitter:image" content="/icon-512.png" />
   </head>
 
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
   </body>
 </html>
