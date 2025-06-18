@@ -1,187 +1,227 @@
-import { useState } from 'react';
-import { Pencil, Trash2, Save, X } from 'lucide-react';
+import React, { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Pencil, Trash2 } from "lucide-react";
 
-const initialSchedule = [
+type ScheduleItem = {
+  id: number;
+  startTime: string;
+  endTime: string;
+  activity: string;
+  notes: string;
+};
+
+const initialSchedule: ScheduleItem[] = [
   {
     id: 1,
-    time: '05h00 – 05h30',
-    activity: '🌅 Despertar + higiene + café leve',
-    notes: 'Momento de despertar tranquilo e preparar o corpo para o dia'
+    startTime: "05:00",
+    endTime: "05:30",
+    activity: "🌅 Despertar + higiene + café leve",
+    notes: "Momento de despertar tranquilo e preparar o corpo para o dia",
   },
   {
     id: 2,
-    time: '05h30 – 07h00',
-    activity: '🧠 Estudo de Inglês',
-    notes: 'Foque em compreensão oral, leitura e fala. Use apps como Anki, Duolingo, ou aulas no YouTube com shadowing'
+    startTime: "05:30",
+    endTime: "07:00",
+    activity: "🧠 Estudo de Inglês",
+    notes:
+      "Foque em compreensão oral, leitura e fala. Use apps como Anki, Duolingo ou shadowing.",
   },
-  {
-    id: 3,
-    time: '07h00 – 08h00',
-    activity: '🏋️‍♂️ Musculação (treino em casa ou academia)',
-    notes: 'Comece o dia com foco na saúde física'
-  },
-  {
-    id: 4,
-    time: '08h00 – 08h30',
-    activity: '🍽️ Café da manhã reforçado',
-    notes: 'Pós-treino, essencial para recuperação'
-  },
-  {
-    id: 5,
-    time: '08h30 – 10h30',
-    activity: '💻 Estudo de Go',
-    notes: 'Prática com exercícios, vídeos e leitura de código'
-  },
-  {
-    id: 6,
-    time: '10h30 – 12h00',
-    activity: '🎓 Estudo da faculdade (ADS)',
-    notes: 'Leia materiais, faça anotações e pratique'
-  },
-  {
-    id: 7,
-    time: '12h00 – 14h00',
-    activity: '🥗 Almoço + descanso',
-    notes: 'Inclui tempo para comer e descansar (power nap ou leitura leve)'
-  },
-  {
-    id: 8,
-    time: '14h00 – 15h00',
-    activity: '🚶 Caminhada leve ou alongamento',
-    notes: 'Pode ser ao ar livre para recarregar a mente'
-  },
-  {
-    id: 9,
-    time: '15h00 – 16h00',
-    activity: '🧠 Estudo de Inglês (conversação ou escrita)',
-    notes: 'Faça anotações, escreva textos e pratique falar em voz alta'
-  },
-  {
-    id: 10,
-    time: '16h00 – 17h00',
-    activity: '📚 Revisão do dia / Tarefas acadêmicas',
-    notes: 'Use este tempo para revisar Go, inglês ou assuntos da faculdade'
-  },
+  // adicione mais se quiser...
 ];
 
-const WeeklyAgendaTable = () => {
+const WeeklyAgenda = () => {
   const [schedule, setSchedule] = useState(initialSchedule);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [draft, setDraft] = useState({ time: '', activity: '', notes: '' });
+  const [selectedItem, setSelectedItem] = useState<ScheduleItem | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [open, setOpen] = useState(false);
 
-  const startEditing = (item: typeof schedule[0]) => {
-    setEditingId(item.id);
-    setDraft({ time: item.time, activity: item.activity, notes: item.notes });
-  };
-
-  const cancelEditing = () => {
-    setEditingId(null);
-    setDraft({ time: '', activity: '', notes: '' });
-  };
-
-  const saveEditing = (id: number) => {
-    setSchedule(prev =>
-      prev.map(item =>
-        item.id === id ? { ...item, ...draft } : item
-      )
+  const handleUpdate = (updatedItem: ScheduleItem) => {
+    setSchedule((prev) =>
+      prev.map((item) => (item.id === updatedItem.id ? updatedItem : item))
     );
-    cancelEditing();
+    setIsEditing(false);
+    setOpen(false);
   };
 
-  const deleteRow = (id: number) => {
-    setSchedule(prev => prev.filter(item => item.id !== id));
+  const handleDelete = (id: number) => {
+    setSchedule((prev) => prev.filter((item) => item.id !== id));
+    setOpen(false);
   };
 
   return (
-    <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm max-w-5xl mx-auto">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">📆 Agenda de Segunda a Sexta (05h00 – 17h00)</h2>
-
-      <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-200 rounded-lg">
-          <thead>
-            <tr className="bg-gray-50 text-gray-700 text-sm font-medium">
-              <th className="px-4 py-2 text-left border-b">Horário</th>
-              <th className="px-4 py-2 text-left border-b">Atividade</th>
-              <th className="px-4 py-2 text-left border-b">Observações</th>
-              <th className="px-4 py-2 text-right border-b">Ações</th>
+    <div className="bg-white rounded-2xl shadow border border-gray-200 p-6">
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        📆 Agenda Semanal (05h00 – 17h00)
+      </h2>
+      <table className="w-full text-sm text-left text-gray-700">
+        <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
+          <tr>
+            <th className="px-4 py-2">Horário</th>
+            <th className="px-4 py-2">Atividade</th>
+          </tr>
+        </thead>
+        <tbody>
+          {schedule.map((item) => (
+            <tr
+              key={item.id}
+              onClick={() => {
+                setSelectedItem(item);
+                setIsEditing(false);
+                setOpen(true);
+              }}
+              className="border-b cursor-pointer hover:bg-gray-50 transition"
+            >
+              <td className="px-4 py-2 whitespace-nowrap">
+                {item.startTime} – {item.endTime}
+              </td>
+              <td className="px-4 py-2">{item.activity}</td>
             </tr>
-          </thead>
-          <tbody>
-            {schedule.map(item => (
-              <tr key={item.id} className="text-sm text-gray-800">
-                <td className="px-4 py-2 border-b align-top">
-                  {editingId === item.id ? (
+          ))}
+        </tbody>
+      </table>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {isEditing ? "Editar Bloco" : "Detalhes do Bloco"}
+            </DialogTitle>
+            <DialogDescription>
+              Visualize ou edite as informações do seu agendamento
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedItem && (
+            <>
+              {isEditing ? (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const form = e.currentTarget;
+                    const updated: ScheduleItem = {
+                      ...selectedItem,
+                      startTime: form.startTime.value,
+                      endTime: form.endTime.value,
+                      activity: form.activity.value,
+                      notes: form.notes.value,
+                    };
+                    handleUpdate(updated);
+                  }}
+                  className="space-y-4 text-gray-900"
+                >
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-600 block mb-1">
+                        Início
+                      </label>
+                      <input
+                        name="startTime"
+                        defaultValue={selectedItem.startTime}
+                        type="time"
+                        required
+                        className="w-full border border-gray-300 rounded-lg p-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-600 block mb-1">
+                        Fim
+                      </label>
+                      <input
+                        name="endTime"
+                        defaultValue={selectedItem.endTime}
+                        type="time"
+                        required
+                        className="w-full border border-gray-300 rounded-lg p-2"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 block mb-1">
+                      Atividade
+                    </label>
                     <input
-                      value={draft.time}
-                      onChange={(e) => setDraft(prev => ({ ...prev, time: e.target.value }))}
-                      className="w-full border px-2 py-1 rounded-md text-sm"
+                      name="activity"
+                      defaultValue={selectedItem.activity}
+                      className="w-full border border-gray-300 rounded-lg p-2"
+                      required
                     />
-                  ) : (
-                    item.time
-                  )}
-                </td>
-                <td className="px-4 py-2 border-b align-top">
-                  {editingId === item.id ? (
-                    <input
-                      value={draft.activity}
-                      onChange={(e) => setDraft(prev => ({ ...prev, activity: e.target.value }))}
-                      className="w-full border px-2 py-1 rounded-md text-sm"
-                    />
-                  ) : (
-                    item.activity
-                  )}
-                </td>
-                <td className="px-4 py-2 border-b align-top">
-                  {editingId === item.id ? (
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 block mb-1">
+                      Observações
+                    </label>
                     <textarea
-                      value={draft.notes}
-                      onChange={(e) => setDraft(prev => ({ ...prev, notes: e.target.value }))}
-                      className="w-full border px-2 py-1 rounded-md text-sm"
+                      name="notes"
+                      defaultValue={selectedItem.notes}
+                      rows={3}
+                      className="w-full border border-gray-300 rounded-lg p-2"
                     />
-                  ) : (
-                    item.notes
-                  )}
-                </td>
-                <td className="px-4 py-2 border-b align-top text-right space-x-2">
-                  {editingId === item.id ? (
-                    <>
-                      <button
-                        onClick={() => saveEditing(item.id)}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        <Save className="inline w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={cancelEditing}
-                        className="text-gray-500 hover:text-gray-700"
-                      >
-                        <X className="inline w-4 h-4" />
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => startEditing(item)}
-                        className="text-gray-500 hover:text-gray-700"
-                      >
-                        <Pencil className="inline w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => deleteRow(item.id)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="inline w-4 h-4" />
-                      </button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  </div>
+
+                  <DialogFooter className="pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditing(false)}
+                      className="px-4 py-2 text-gray-600 border rounded-lg hover:bg-gray-100"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                      Salvar
+                    </button>
+                  </DialogFooter>
+                </form>
+              ) : (
+                <div className="text-sm space-y-3">
+                  <p>
+                    <strong className="text-gray-600">Horário:</strong>{" "}
+                    {selectedItem.startTime} – {selectedItem.endTime}
+                  </p>
+                  <p>
+                    <strong className="text-gray-600">Atividade:</strong>{" "}
+                    {selectedItem.activity}
+                  </p>
+                  <p>
+                    <strong className="text-gray-600">Observações:</strong>{" "}
+                    {selectedItem.notes}
+                  </p>
+
+                  <DialogFooter className="pt-4 gap-2">
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-700"
+                    >
+                      <Pencil className="w-4 h-4" />
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => handleDelete(selectedItem.id)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 border border-red-300 rounded-lg hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Excluir
+                    </button>
+                  </DialogFooter>
+                </div>
+              )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
 
-export default WeeklyAgendaTable;
+export default WeeklyAgenda;
