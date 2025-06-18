@@ -43,7 +43,7 @@ const ProgressBar = () => {
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Progresso Semanal</h2>
             <p className="text-sm text-gray-500">
-              {completedTasks} de {totalTasks} tarefas concluídas
+              {completedTasks.length} de {totalTasks} tarefas concluídas
             </p>
           </div>
         </div>
@@ -76,11 +76,11 @@ const ProgressBar = () => {
 
         <div className="grid grid-cols-2 gap-4 text-center">
           <div className="p-3 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">{completedTasks}</div>
+            <div className="text-2xl font-bold text-green-600">{completedTasks.length}</div>
             <div className="text-sm text-green-600">Concluídas</div>
           </div>
           <div className="p-3 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{totalTasks - completedTasks}</div>
+            <div className="text-2xl font-bold text-blue-600">{totalTasks - completedTasks.length}</div>
             <div className="text-sm text-blue-600">Pendentes</div>
           </div>
         </div>
