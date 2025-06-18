@@ -63,15 +63,50 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Cores customizadas do Routinely
-				routinely: {
-					blue: '#4A90E2',
-					green: '#50C878',
-					gold: '#FFD700',
-					tomato: '#FF6347',
-					text: '#2C3E50',
-					background: '#F9FAFC',
-					border: '#E0E6ED'
+				// Cores modernas com tons escuros
+				dark: {
+					900: '#0f0f23',
+					800: '#1a1a2e',
+					700: '#16213e',
+					600: '#1f2937',
+					500: '#374151',
+					400: '#4b5563',
+					300: '#6b7280',
+					200: '#9ca3af',
+					100: '#d1d5db'
+				},
+				violet: {
+					900: '#4c1d95',
+					800: '#5b21b6',
+					700: '#6d28d9',
+					600: '#7c3aed',
+					500: '#8b5cf6',
+					400: '#a78bfa',
+					300: '#c4b5fd',
+					200: '#ddd6fe',
+					100: '#ede9fe'
+				},
+				emerald: {
+					900: '#064e3b',
+					800: '#065f46',
+					700: '#047857',
+					600: '#059669',
+					500: '#10b981',
+					400: '#34d399',
+					300: '#6ee7b7',
+					200: '#a7f3d0',
+					100: '#d1fae5'
+				},
+				slate: {
+					900: '#0f172a',
+					800: '#1e293b',
+					700: '#334155',
+					600: '#475569',
+					500: '#64748b',
+					400: '#94a3b8',
+					300: '#cbd5e1',
+					200: '#e2e8f0',
+					100: '#f1f5f9'
 				}
 			},
 			borderRadius: {

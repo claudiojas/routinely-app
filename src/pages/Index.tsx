@@ -11,12 +11,12 @@ import InstallPWA from '../components/InstallPWA';
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-dark-800 to-slate-900">
       <Header />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Date Picker */}
-        <div className="bg-white/60 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 p-4">
+        <div className="modern-card p-4">
           <DatePicker />
         </div>
         
