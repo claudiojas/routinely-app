@@ -1,5 +1,4 @@
 
-import React from 'react';
 import Header from '../components/Header';
 import DatePicker from '../components/DatePicker';
 import WeeklySchedule from '../components/WeeklySchedule';
