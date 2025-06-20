@@ -12,7 +12,8 @@ const Login = () => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/');
+    // Redireciona para a página de criar primeira tarefa
+    navigate('/add-daily-task');
   };
 
   return (
