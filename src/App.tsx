@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import SignUp from "./pages/SignUp";
 import AddDailyTask from "./pages/AddDailyTask";
 import WeeklyScheduleManager from "./pages/WeeklyScheduleManager";
+import Layout from "./components/Layout";
 
 const queryClient = new QueryClient();
 
@@ -19,15 +20,17 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/add-daily-task" element={<AddDailyTask />} />
-          <Route path="/weekly-schedule-manager" element={<WeeklyScheduleManager />} />
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Layout>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/add-daily-task" element={<AddDailyTask />} />
+            <Route path="/weekly-schedule-manager" element={<WeeklyScheduleManager />} />
+            <Route path="/" element={<Index />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Layout>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

@@ -1,5 +1,4 @@
 
-import Header from '../components/Header';
 import DatePicker from '../components/DatePicker';
 import WeeklySchedule from '../components/WeeklySchedule';
 import TaskList from '../components/TaskList';
@@ -10,9 +9,7 @@ import InstallPWA from '../components/InstallPWA';
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-dark-800 to-slate-900">
-      <Header />
-      
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-dark-800 to-slate-900">      
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Date Picker */}
         <div className="modern-card p-4">

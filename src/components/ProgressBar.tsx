@@ -1,5 +1,3 @@
-
-import React from 'react';
 import { TrendingUp, Target, Calendar } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
