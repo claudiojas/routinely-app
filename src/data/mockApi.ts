@@ -9,6 +9,7 @@ export interface WeeklyScheduleItem {
   notes: string;
   type: 'study' | 'exercise' | 'work' | 'personal' | 'other';
   isActive: boolean;
+  completed?: boolean;
 }
 
 // Mock data - simula dados que viriam da API
@@ -22,6 +23,7 @@ const mockWeeklySchedule: WeeklyScheduleItem[] = [
     notes: 'Momento de despertar tranquilo e preparar o corpo para o dia',
     type: 'personal',
     isActive: true,
+    completed: false,
   },
   {
     id: '2',
@@ -32,6 +34,7 @@ const mockWeeklySchedule: WeeklyScheduleItem[] = [
     notes: 'Foque em compreensão oral, leitura e fala. Use apps como Anki, Duolingo ou shadowing.',
     type: 'study',
     isActive: true,
+    completed: false,
   },
   {
     id: '3',
@@ -42,6 +45,7 @@ const mockWeeklySchedule: WeeklyScheduleItem[] = [
     notes: 'Treino de força ou cardio',
     type: 'exercise',
     isActive: true,
+    completed: false,
   },
 ];
 

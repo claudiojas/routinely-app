@@ -4,7 +4,8 @@ import { Plus, Calendar, Clock, Save, X, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { mockApi, WeeklyScheduleItem } from '../data/mockApi';
+import { WeeklyScheduleItem } from '../data/mockApi';
+import { useStore } from '../store/useStore';
 
 const DAYS = [
   { key: 'monday', label: 'Segunda-feira' },
@@ -25,7 +26,14 @@ const ACTIVITY_TYPES = [
 ] as const;
 
 const WeeklyScheduleManager = () => {
-  const [schedule, setSchedule] = useState<WeeklyScheduleItem[]>([]);
+  const { 
+    weeklySchedule, 
+    loadWeeklySchedule, 
+    addScheduleItem, 
+    updateScheduleItem, 
+    deleteScheduleItem 
+  } = useStore();
+  
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState<(typeof DAYS)[number]['key']>('monday');
   const [showForm, setShowForm] = useState(false);
@@ -46,8 +54,7 @@ const WeeklyScheduleManager = () => {
   const loadSchedule = async () => {
     try {
       setLoading(true);
-      const data = await mockApi.getWeeklySchedule();
-      setSchedule(data);
+      await loadWeeklySchedule();
     } catch (error) {
       console.error('Erro ao carregar agenda:', error);
     } finally {
@@ -60,18 +67,16 @@ const WeeklyScheduleManager = () => {
     
     try {
       if (editingItem) {
-        const updated = await mockApi.updateScheduleItem(editingItem.id, {
+        await updateScheduleItem(editingItem.id, {
           ...formData,
           dayOfWeek: selectedDay,
         });
-        setSchedule(prev => prev.map(item => item.id === updated.id ? updated : item));
       } else {
-        const newItem = await mockApi.createScheduleItem({
+        await addScheduleItem({
           ...formData,
           dayOfWeek: selectedDay,
           isActive: true,
         });
-        setSchedule(prev => [...prev, newItem]);
       }
       
       resetForm();
@@ -94,11 +99,12 @@ const WeeklyScheduleManager = () => {
   };
 
   const handleDelete = async (id: string) => {
-    try {
-      await mockApi.deleteScheduleItem(id);
-      setSchedule(prev => prev.filter(item => item.id !== id));
-    } catch (error) {
-      console.error('Erro ao deletar item:', error);
+    if (confirm('Tem certeza que deseja excluir este item?')) {
+      try {
+        await deleteScheduleItem(id);
+      } catch (error) {
+        console.error('Erro ao deletar item:', error);
+      }
     }
   };
 
@@ -115,7 +121,7 @@ const WeeklyScheduleManager = () => {
   };
 
   const getScheduleForDay = (day: (typeof DAYS)[number]['key']) => {
-    return schedule
+    return weeklySchedule
       .filter(item => item.dayOfWeek === day && item.isActive)
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
   };

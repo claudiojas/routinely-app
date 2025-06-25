@@ -1,5 +1,5 @@
 
-import { Calendar, Settings, User, Menu, Plus, X } from 'lucide-react';
+import { Calendar, Settings, User, Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 
@@ -32,17 +32,6 @@ const Header = () => {
               }`}
             >
               Dashboard
-            </Link>
-            <Link
-              to="/add-daily-task"
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                location.pathname === '/add-daily-task'
-                  ? 'bg-violet-600/20 text-violet-300 border border-violet-600/30'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
-              }`}
-            >
-              <Plus className="w-4 h-4 inline mr-1" />
-              Nova Tarefa
             </Link>
             <Link
               to="/weekly-schedule-manager"
@@ -93,18 +82,6 @@ const Header = () => {
                 }`}
               >
                 Dashboard
-              </Link>
-              <Link
-                to="/add-daily-task"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`px-4 py-3 rounded-lg text-sm font-medium transition-all flex items-center ${
-                  location.pathname === '/add-daily-task'
-                    ? 'bg-violet-600/20 text-violet-300 border border-violet-600/30'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
-                }`}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Nova Tarefa
               </Link>
               <Link
                 to="/weekly-schedule-manager"

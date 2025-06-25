@@ -1,5 +1,6 @@
 
 import { create } from 'zustand';
+import { mockApi, WeeklyScheduleItem } from '../data/mockApi';
 
 export interface Task {
   id: string;
@@ -10,6 +11,7 @@ export interface Task {
   type: 'study' | 'exercise' | 'work' | 'personal' | 'other';
   isGoogleSynced?: boolean;
   createdAt: Date;
+  notes?: string;
 }
 
 export interface TimeBlock {
@@ -34,17 +36,25 @@ interface Store {
   timeBlocks: TimeBlock[];
   notes: Note[];
   selectedDate: string;
+  weeklySchedule: WeeklyScheduleItem[];
   
   // Task actions
   addTask: (task: Omit<Task, 'id' | 'createdAt'>) => void;
   updateTask: (id: string, updates: Partial<Task>) => void;
   deleteTask: (id: string) => void;
   toggleTask: (id: string) => void;
+  addTaskNote: (id: string, note: string) => void;
   
   // Time block actions
   addTimeBlock: (block: Omit<TimeBlock, 'id'>) => void;
   updateTimeBlock: (id: string, updates: Partial<TimeBlock>) => void;
   deleteTimeBlock: (id: string) => void;
+  
+  // Weekly schedule actions
+  loadWeeklySchedule: () => Promise<void>;
+  addScheduleItem: (item: Omit<WeeklyScheduleItem, 'id'>) => Promise<void>;
+  updateScheduleItem: (id: string, updates: Partial<WeeklyScheduleItem>) => Promise<void>;
+  deleteScheduleItem: (id: string) => Promise<void>;
   
   // Note actions
   addNote: (note: Omit<Note, 'id' | 'createdAt'>) => void;
@@ -56,40 +66,12 @@ interface Store {
   
   // Progress calculation
   getWeeklyProgress: () => number;
+  getTodayScheduleItems: (date: string) => WeeklyScheduleItem[];
 }
 
 export const useStore = create<Store>((set, get) => ({
-  tasks: [
-    {
-      id: '1',
-      title: 'Estudar React Hooks',
-      description: 'Revisar useState e useEffect',
-      completed: false,
-      date: new Date().toISOString().split('T')[0],
-      type: 'study',
-      isGoogleSynced: true,
-      createdAt: new Date(),
-    },
-    {
-      id: '2',
-      title: 'Exercício matinal',
-      completed: true,
-      date: new Date().toISOString().split('T')[0],
-      type: 'exercise',
-      createdAt: new Date(),
-    }
-  ],
-  timeBlocks: [
-    {
-      id: '1',
-      title: 'Reunião de equipe',
-      type: 'work',
-      day: 'monday',
-      startTime: '09:00',
-      endTime: '10:00',
-      isGoogleSynced: true,
-    }
-  ],
+  tasks: [],
+  timeBlocks: [],
   notes: [
     {
       id: '1',
@@ -99,6 +81,7 @@ export const useStore = create<Store>((set, get) => ({
     }
   ],
   selectedDate: new Date().toISOString().split('T')[0],
+  weeklySchedule: [],
   
   addTask: (task) => set((state) => ({
     tasks: [...state.tasks, {
@@ -123,6 +106,12 @@ export const useStore = create<Store>((set, get) => ({
       task.id === id ? { ...task, completed: !task.completed } : task
     )
   })),
+
+  addTaskNote: (id, note) => set((state) => ({
+    tasks: state.tasks.map(task =>
+      task.id === id ? { ...task, notes: note } : task
+    )
+  })),
   
   addTimeBlock: (block) => set((state) => ({
     timeBlocks: [...state.timeBlocks, {
@@ -140,6 +129,50 @@ export const useStore = create<Store>((set, get) => ({
   deleteTimeBlock: (id) => set((state) => ({
     timeBlocks: state.timeBlocks.filter(block => block.id !== id)
   })),
+
+  loadWeeklySchedule: async () => {
+    try {
+      const data = await mockApi.getWeeklySchedule();
+      set({ weeklySchedule: data });
+    } catch (error) {
+      console.error('Erro ao carregar agenda semanal:', error);
+    }
+  },
+
+  addScheduleItem: async (item) => {
+    try {
+      const newItem = await mockApi.createScheduleItem(item);
+      set((state) => ({
+        weeklySchedule: [...state.weeklySchedule, newItem]
+      }));
+    } catch (error) {
+      console.error('Erro ao adicionar item da agenda:', error);
+    }
+  },
+
+  updateScheduleItem: async (id, updates) => {
+    try {
+      const updated = await mockApi.updateScheduleItem(id, updates);
+      set((state) => ({
+        weeklySchedule: state.weeklySchedule.map(item => 
+          item.id === id ? updated : item
+        )
+      }));
+    } catch (error) {
+      console.error('Erro ao atualizar item da agenda:', error);
+    }
+  },
+
+  deleteScheduleItem: async (id) => {
+    try {
+      await mockApi.deleteScheduleItem(id);
+      set((state) => ({
+        weeklySchedule: state.weeklySchedule.filter(item => item.id !== id)
+      }));
+    } catch (error) {
+      console.error('Erro ao deletar item da agenda:', error);
+    }
+  },
   
   addNote: (note) => set((state) => ({
     notes: [...state.notes, {
@@ -175,5 +208,18 @@ export const useStore = create<Store>((set, get) => ({
     
     const completedTasks = weekTasks.filter(task => task.completed);
     return Math.round((completedTasks.length / weekTasks.length) * 100);
+  },
+
+  getTodayScheduleItems: (date) => {
+    const state = get();
+    const dayOfWeek = (() => {
+      const dateObj = new Date(date);
+      const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      return days[dateObj.getDay()] as WeeklyScheduleItem['dayOfWeek'];
+    })();
+
+    return state.weeklySchedule
+      .filter(item => item.dayOfWeek === dayOfWeek && item.isActive)
+      .sort((a, b) => a.startTime.localeCompare(b.startTime));
   },
 }));
