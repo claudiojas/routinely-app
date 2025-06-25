@@ -1,14 +1,48 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Check, Trash2, Edit2 } from 'lucide-react';
 import { useStore, Task } from '../store/useStore';
+import { mockApi, WeeklyScheduleItem } from '../data/mockApi';
 
 const TaskList = () => {
   const { tasks, selectedDate, addTask, updateTask, deleteTask, toggleTask } = useStore();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [weeklySchedule, setWeeklySchedule] = useState<WeeklyScheduleItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const todayTasks = tasks.filter(task => task.date === selectedDate);
+
+  useEffect(() => {
+    loadWeeklySchedule();
+  }, []);
+
+  const loadWeeklySchedule = async () => {
+    try {
+      setLoading(true);
+      const data = await mockApi.getWeeklySchedule();
+      setWeeklySchedule(data);
+    } catch (error) {
+      console.error('Erro ao carregar agenda semanal:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Converter data selecionada para dia da semana
+  const getDayOfWeek = (dateString: string) => {
+    const date = new Date(dateString);
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    return days[date.getDay()] as WeeklyScheduleItem['dayOfWeek'];
+  };
+
+  // Obter tarefas da agenda semanal para o dia selecionado
+  const getTodayScheduleItems = () => {
+    const dayOfWeek = getDayOfWeek(selectedDate);
+    return weeklySchedule
+      .filter(item => item.dayOfWeek === dayOfWeek && item.isActive)
+      .sort((a, b) => a.startTime.localeCompare(b.startTime));
+  };
 
   const typeLabels = {
     study: 'Estudo',
@@ -54,6 +88,19 @@ const TaskList = () => {
     setShowAddForm(true);
   };
 
+  const todayScheduleItems = getTodayScheduleItems();
+  const allTodayItems = [...todayTasks, ...todayScheduleItems];
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="text-center py-8 text-gray-500">
+          Carregando tarefas do dia...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div className="flex justify-between items-center mb-6">
@@ -68,74 +115,112 @@ const TaskList = () => {
       </div>
 
       <div className="space-y-3">
-        {todayTasks.length === 0 ? (
+        {allTodayItems.length === 0 ? (
           <p className="text-gray-500 text-center py-8">
             Nenhuma tarefa para hoje. Que tal adicionar uma?
           </p>
         ) : (
-          todayTasks.map((task) => (
-            <div
-              key={task.id}
-              className={`p-4 border rounded-lg transition-all ${
-                task.completed 
-                  ? 'bg-green-50 border-green-200' 
-                  : 'bg-white border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-start space-x-3">
-                <button
-                  onClick={() => toggleTask(task.id)}
-                  className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                    task.completed
-                      ? 'bg-green-500 border-green-500 text-white'
-                      : 'border-gray-300 hover:border-gray-400'
-                  }`}
-                >
-                  {task.completed && <Check className="h-3 w-3" />}
-                </button>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <h3 className={`font-medium ${
-                      task.completed ? 'line-through text-gray-500' : 'text-gray-900'
-                    }`}>
-                      {task.title}
-                    </h3>
-                    {task.isGoogleSynced && (
-                      <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                    )}
+          <>
+            {/* Tarefas da agenda semanal */}
+            {todayScheduleItems.map((item) => (
+              <div
+                key={`schedule-${item.id}`}
+                className="p-4 border rounded-lg bg-blue-50 border-blue-200"
+              >
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 w-5 h-5 rounded border-2 border-blue-300 bg-blue-100 flex items-center justify-center">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   </div>
-                  
-                  {task.description && (
-                    <p className={`text-sm mb-2 ${
-                      task.completed ? 'text-gray-400' : 'text-gray-600'
-                    }`}>
-                      {task.description}
-                    </p>
-                  )}
-                  
-                  <span className={`text-xs font-medium ${typeColors[task.type]}`}>
-                    {typeLabels[task.type]}
-                  </span>
-                </div>
 
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => handleEdit(task)}
-                    className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => deleteTask(task.id)}
-                    className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <h3 className="font-medium text-gray-900">
+                        {item.activity}
+                      </h3>
+                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                        {item.startTime} - {item.endTime}
+                      </span>
+                    </div>
+                    
+                    {item.notes && (
+                      <p className="text-sm text-gray-600 mb-2">
+                        {item.notes}
+                      </p>
+                    )}
+                    
+                    <span className={`text-xs font-medium ${typeColors[item.type]}`}>
+                      {typeLabels[item.type]}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            ))}
+
+            {/* Tarefas manuais */}
+            {todayTasks.map((task) => (
+              <div
+                key={task.id}
+                className={`p-4 border rounded-lg transition-all ${
+                  task.completed 
+                    ? 'bg-green-50 border-green-200' 
+                    : 'bg-white border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-start space-x-3">
+                  <button
+                    onClick={() => toggleTask(task.id)}
+                    className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                      task.completed
+                        ? 'bg-green-500 border-green-500 text-white'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    {task.completed && <Check className="h-3 w-3" />}
+                  </button>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <h3 className={`font-medium ${
+                        task.completed ? 'line-through text-gray-500' : 'text-gray-900'
+                      }`}>
+                        {task.title}
+                      </h3>
+                      {task.isGoogleSynced && (
+                        <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                      )}
+                    </div>
+                    
+                    {task.description && (
+                      <p className={`text-sm mb-2 ${
+                        task.completed ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
+                        {task.description}
+                      </p>
+                    )}
+                    
+                    <span className={`text-xs font-medium ${typeColors[task.type]}`}>
+                      {typeLabels[task.type]}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleEdit(task)}
+                      className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => deleteTask(task.id)}
+                      className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </>
         )}
       </div>
 
