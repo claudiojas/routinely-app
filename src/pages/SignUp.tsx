@@ -14,7 +14,7 @@ const SignUp = () => {
   const handleSignUp = (e: React.FormEvent) => {
     e.preventDefault();
     // Aqui você pode enviar os dados para o backend
-    navigate('/');
+    navigate('/login');
   };
 
   return (
