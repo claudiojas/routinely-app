@@ -1,206 +1,215 @@
 
-import { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
-import { mockApi, WeeklyScheduleItem } from '../data/mockApi';
+import React, { useState } from 'react';
+import { Plus, Check, Trash2, Edit2 } from 'lucide-react';
+import { useStore, Task } from '../store/useStore';
 
 const TaskList = () => {
-  const [schedule, setSchedule] = useState<WeeklyScheduleItem[]>([]);
-  const [selectedTask, setSelectedTask] = useState<WeeklyScheduleItem | null>(null);
-  const [userNotes, setUserNotes] = useState<Record<string, string>>({});
-  const [completed, setCompleted] = useState<Record<string, boolean>>({});
-  const [loading, setLoading] = useState(true);
+  const { tasks, selectedDate, addTask, updateTask, deleteTask, toggleTask } = useStore();
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
-  useEffect(() => {
-    loadTodaySchedule();
-  }, []);
+  const todayTasks = tasks.filter(task => task.date === selectedDate);
 
-  const loadTodaySchedule = async () => {
-    try {
-      setLoading(true);
-      const today = new Date();
-      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-      const todayKey = dayNames[today.getDay()] as WeeklyScheduleItem['dayOfWeek'];
-      
-      const todaySchedule = await mockApi.getScheduleByDay(todayKey);
-      setSchedule(todaySchedule);
-    } catch (error) {
-      console.error('Erro ao carregar agenda do dia:', error);
-    } finally {
-      setLoading(false);
-    }
+  const typeLabels = {
+    study: 'Estudo',
+    exercise: 'Exercício',
+    work: 'Trabalho',
+    personal: 'Pessoal',
+    other: 'Outro',
   };
 
-  const handleSave = (id: string) => {
-    // Aqui você pode implementar a lógica para salvar as anotações no backend
-    console.log('Salvando anotações para:', id, userNotes[id]);
-    setSelectedTask(null);
+  const typeColors = {
+    study: 'text-blue-600',
+    exercise: 'text-green-600',
+    work: 'text-purple-600',
+    personal: 'text-pink-600',
+    other: 'text-gray-600',
   };
 
-  const handleCheck = (id: string) => {
-    setCompleted((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const getTypeColor = (type: WeeklyScheduleItem['type']) => {
-    const colors = {
-      study: 'bg-blue-500',
-      exercise: 'bg-green-500',
-      work: 'bg-purple-500',
-      personal: 'bg-orange-500',
-      other: 'bg-gray-500',
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    
+    const taskData = {
+      title: formData.get('title') as string,
+      description: formData.get('description') as string,
+      type: formData.get('type') as Task['type'],
+      date: selectedDate,
+      completed: false,
     };
-    return colors[type] || 'bg-gray-500';
+
+    if (editingTask) {
+      updateTask(editingTask.id, taskData);
+      setEditingTask(null);
+    } else {
+      addTask(taskData);
+    }
+    
+    setShowAddForm(false);
+    e.currentTarget.reset();
   };
 
-  if (loading) {
-    return (
-      <div className="modern-card p-6">
-        <div className="animate-pulse">
-          <div className="h-6 bg-slate-700 rounded w-48 mb-4"></div>
-          <div className="space-y-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-12 bg-slate-700 rounded"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const handleEdit = (task: Task) => {
+    setEditingTask(task);
+    setShowAddForm(true);
+  };
 
   return (
-    <div className="modern-card p-6">
-      <h2 className="text-xl font-semibold text-white mb-6">Checklist Diário</h2>
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-semibold text-gray-900">Tarefas do Dia</h2>
+        <button
+          onClick={() => setShowAddForm(true)}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
+        >
+          <Plus className="h-4 w-4" />
+          <span>Adicionar</span>
+        </button>
+      </div>
 
-      {schedule.length === 0 ? (
-        <div className="text-center py-12 text-slate-400">
-          <p>Nenhuma atividade programada para hoje</p>
-          <p className="text-sm mt-2">Configure sua agenda semanal para ver as tarefas aqui</p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="text-left text-slate-400 border-b border-slate-700">
-                <th className="py-2 px-3">Horário</th>
-                <th className="py-2 px-3">Atividade</th>
-                <th className="py-2 px-3">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-700">
-              {schedule.map((task) => (
-                <tr
-                  key={task.id}
-                  onClick={() => setSelectedTask(task)}
-                  className="cursor-pointer hover:bg-slate-700/30 transition-colors"
-                >
-                  <td className="py-3 px-3 font-medium whitespace-nowrap text-slate-300">
-                    {task.startTime} – {task.endTime}
-                  </td>
-                  <td className="py-3 px-3">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${getTypeColor(task.type)}`} />
-                      <span className={`text-white ${completed[task.id] ? 'line-through opacity-60' : ''}`}>
-                        {task.activity}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-3">
-                    <div
-                      className={`w-6 h-6 rounded-full border-2 cursor-pointer transition-all ${
-                        completed[task.id]
-                          ? 'bg-emerald-500 border-emerald-500'
-                          : 'border-slate-500 hover:border-emerald-400'
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCheck(task.id);
-                      }}
-                    >
-                      {completed[task.id] && (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-white rounded-full" />
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {selectedTask && (
-        <Dialog open={true} onOpenChange={() => setSelectedTask(null)}>
-          <DialogContent className="bg-slate-800 border-slate-700 text-white">
-            <DialogHeader>
-              <DialogTitle className="text-white">{selectedTask.activity}</DialogTitle>
-              <DialogDescription className="text-slate-300">
-                {selectedTask.startTime} – {selectedTask.endTime}
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-4 mt-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
-                  Observações da Atividade
-                </label>
-                <p className="text-slate-200 text-sm bg-slate-700/50 p-3 rounded border border-slate-600">
-                  {selectedTask.notes || 'Nenhuma observação cadastrada'}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
-                  Suas Anotações
-                </label>
-                <textarea
-                  rows={3}
-                  placeholder="Digite suas observações sobre a tarefa..."
-                  className="w-full p-2 bg-slate-700 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500 text-white placeholder-slate-400"
-                  value={userNotes[selectedTask.id] || ''}
-                  onChange={(e) =>
-                    setUserNotes((prev) => ({ ...prev, [selectedTask.id]: e.target.value }))
-                  }
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
+      <div className="space-y-3">
+        {todayTasks.length === 0 ? (
+          <p className="text-gray-500 text-center py-8">
+            Nenhuma tarefa para hoje. Que tal adicionar uma?
+          </p>
+        ) : (
+          todayTasks.map((task) => (
+            <div
+              key={task.id}
+              className={`p-4 border rounded-lg transition-all ${
+                task.completed 
+                  ? 'bg-green-50 border-green-200' 
+                  : 'bg-white border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-start space-x-3">
                 <button
-                  onClick={() => handleCheck(selectedTask.id)}
-                  className={`px-4 py-2 rounded-md text-white font-medium shadow transition-all duration-200 ${
-                    completed[selectedTask.id] 
-                      ? 'bg-emerald-600 hover:bg-emerald-700' 
-                      : 'bg-violet-600 hover:bg-violet-700'
+                  onClick={() => toggleTask(task.id)}
+                  className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                    task.completed
+                      ? 'bg-green-500 border-green-500 text-white'
+                      : 'border-gray-300 hover:border-gray-400'
                   }`}
                 >
-                  {completed[selectedTask.id] ? 'Desmarcar' : 'Marcar como concluída'}
+                  {task.completed && <Check className="h-3 w-3" />}
                 </button>
-                <button
-                  onClick={() => handleSave(selectedTask.id)}
-                  className="px-4 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 transition-colors"
-                >
-                  Salvar Anotações
-                </button>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <h3 className={`font-medium ${
+                      task.completed ? 'line-through text-gray-500' : 'text-gray-900'
+                    }`}>
+                      {task.title}
+                    </h3>
+                    {task.isGoogleSynced && (
+                      <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                    )}
+                  </div>
+                  
+                  {task.description && (
+                    <p className={`text-sm mb-2 ${
+                      task.completed ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                      {task.description}
+                    </p>
+                  )}
+                  
+                  <span className={`text-xs font-medium ${typeColors[task.type]}`}>
+                    {typeLabels[task.type]}
+                  </span>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handleEdit(task)}
+                    className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => deleteTask(task.id)}
+                    className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
+          ))
+        )}
+      </div>
 
-            <DialogFooter className="mt-6">
-              <button
-                onClick={() => setSelectedTask(null)}
-                className="text-sm text-slate-400 hover:text-slate-200 transition-colors"
-              >
-                Fechar
-              </button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+      {showAddForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4">
+              {editingTask ? 'Editar Tarefa' : 'Nova Tarefa'}
+            </h3>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Título *
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  required
+                  defaultValue={editingTask?.title || ''}
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Descrição
+                </label>
+                <textarea
+                  name="description"
+                  rows={3}
+                  defaultValue={editingTask?.description || ''}
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tipo
+                </label>
+                <select
+                  name="type"
+                  required
+                  defaultValue={editingTask?.type || 'other'}
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="study">Estudo</option>
+                  <option value="exercise">Exercício</option>
+                  <option value="work">Trabalho</option>
+                  <option value="personal">Pessoal</option>
+                  <option value="other">Outro</option>
+                </select>
+              </div>
+              
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddForm(false);
+                    setEditingTask(null);
+                  }}
+                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  {editingTask ? 'Salvar' : 'Adicionar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );
