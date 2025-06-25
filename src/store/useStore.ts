@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { mockApi, WeeklyScheduleItem } from '../data/mockApi';
 
@@ -69,6 +68,14 @@ interface Store {
   getTodayScheduleItems: (date: string) => WeeklyScheduleItem[];
 }
 
+const getCurrentDate = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export const useStore = create<Store>((set, get) => ({
   tasks: [],
   timeBlocks: [],
@@ -76,11 +83,11 @@ export const useStore = create<Store>((set, get) => ({
     {
       id: '1',
       content: 'Lembrar de revisar o código do projeto',
-      date: new Date().toISOString().split('T')[0],
+      date: getCurrentDate(),
       createdAt: new Date(),
     }
   ],
-  selectedDate: new Date().toISOString().split('T')[0],
+  selectedDate: getCurrentDate(),
   weeklySchedule: [],
   
   addTask: (task) => set((state) => ({
@@ -213,7 +220,7 @@ export const useStore = create<Store>((set, get) => ({
   getTodayScheduleItems: (date) => {
     const state = get();
     const dayOfWeek = (() => {
-      const dateObj = new Date(date);
+      const dateObj = new Date(date + 'T12:00:00');
       const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
       return days[dateObj.getDay()] as WeeklyScheduleItem['dayOfWeek'];
     })();

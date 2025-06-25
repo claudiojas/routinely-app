@@ -7,25 +7,38 @@ const DatePicker = () => {
   const { selectedDate, setSelectedDate } = useStore();
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+    const date = new Date(dateString + 'T12:00:00'); // Add time to avoid timezone issues
     return date.toLocaleDateString('pt-BR', {
-      weekday: 'short',
+      weekday: 'long',
       day: 'numeric',
-      month: 'short'
+      month: 'long',
+      year: 'numeric'
     });
   };
 
   const changeDate = (days: number) => {
-    const currentDate = new Date(selectedDate);
+    const currentDate = new Date(selectedDate + 'T12:00:00');
     currentDate.setDate(currentDate.getDate() + days);
     setSelectedDate(currentDate.toISOString().split('T')[0]);
   };
 
   const goToToday = () => {
-    setSelectedDate(new Date().toISOString().split('T')[0]);
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    setSelectedDate(`${year}-${month}-${day}`);
   };
 
-  const isToday = selectedDate === new Date().toISOString().split('T')[0];
+  const getCurrentDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const isToday = selectedDate === getCurrentDate();
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
