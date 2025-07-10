@@ -1,326 +1,163 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api, ApiException } from '@/lib/api'
-import { invalidateQueries } from '@/lib/queryClient'
-import {
-  WeeklyScheduleItem,
-  CreateWeeklyScheduleRequest,
-  UpdateWeeklyScheduleRequest,
-  Task,
-  CreateTaskRequest,
-  UpdateTaskRequest,
-  Note,
-  CreateNoteRequest,
-  UpdateNoteRequest,
-  User,
-  LoginRequest,
-  RegisterRequest,
-  TaskFilters,
-  WeeklyScheduleFilters,
-  PaginatedResponse,
-  AnalyticsData,
-} from '@/types/api'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { mockApi, WeeklyScheduleItem, Task, Note } from '../data/mockApi';
 
-// ===== HOOKS PARA AGENDA SEMANAL =====
-
-export const useWeeklySchedule = (filters?: WeeklyScheduleFilters) => {
+// Weekly Schedule Hooks
+export const useWeeklySchedule = () => {
   return useQuery({
-    queryKey: ['weeklySchedule', filters],
-    queryFn: async () => {
-      const params = filters ? { ...filters } : {}
-      return api.get<WeeklyScheduleItem[]>('/schedule/weekly', params)
-    },
-  })
-}
+    queryKey: ['weeklySchedule'],
+    queryFn: mockApi.getWeeklySchedule,
+  });
+};
 
-export const useWeeklyScheduleByDay = (dayOfWeek: string) => {
+export const useWeeklyScheduleByDay = (dayOfWeek: WeeklyScheduleItem['dayOfWeek']) => {
   return useQuery({
     queryKey: ['weeklySchedule', 'byDay', dayOfWeek],
-    queryFn: async () => {
-      return api.get<WeeklyScheduleItem[]>(`/schedule/weekly/${dayOfWeek}`)
-    },
+    queryFn: () => mockApi.getScheduleByDay(dayOfWeek),
     enabled: !!dayOfWeek,
-  })
-}
+  });
+};
 
-export const useCreateWeeklySchedule = () => {
-  const queryClient = useQueryClient()
+export const useCreateScheduleItem = () => {
+  const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (data: CreateWeeklyScheduleRequest) => {
-      return api.post<WeeklyScheduleItem>('/schedule/weekly', data)
-    },
+    mutationFn: (item: Omit<WeeklyScheduleItem, 'id'>) => mockApi.createScheduleItem(item),
     onSuccess: () => {
-      invalidateQueries.weeklySchedule()
+      queryClient.invalidateQueries({ queryKey: ['weeklySchedule'] });
     },
-  })
-}
+  });
+};
 
-export const useUpdateWeeklySchedule = () => {
-  const queryClient = useQueryClient()
+export const useUpdateScheduleItem = () => {
+  const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateWeeklyScheduleRequest }) => {
-      return api.put<WeeklyScheduleItem>(`/schedule/weekly/${id}`, data)
-    },
-    onSuccess: (_, { id }) => {
-      invalidateQueries.weeklySchedule()
-      invalidateQueries.weeklyScheduleByDay()
-    },
-  })
-}
-
-export const useDeleteWeeklySchedule = () => {
-  const queryClient = useQueryClient()
-  
-  return useMutation({
-    mutationFn: async (id: string) => {
-      return api.delete(`/schedule/weekly/${id}`)
-    },
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<WeeklyScheduleItem> }) =>
+      mockApi.updateScheduleItem(id, updates),
     onSuccess: () => {
-      invalidateQueries.weeklySchedule()
-      invalidateQueries.weeklyScheduleByDay()
+      queryClient.invalidateQueries({ queryKey: ['weeklySchedule'] });
     },
-  })
-}
+  });
+};
 
-// ===== HOOKS PARA TAREFAS =====
+export const useDeleteScheduleItem = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (id: string) => mockApi.deleteScheduleItem(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['weeklySchedule'] });
+    },
+  });
+};
 
-export const useTasks = (filters?: TaskFilters) => {
+// Tasks Hooks
+export const useTasks = () => {
   return useQuery({
-    queryKey: ['tasks', filters],
-    queryFn: async () => {
-      const params = filters ? { ...filters } : {}
-      return api.get<PaginatedResponse<Task>>('/tasks', params)
-    },
-  })
-}
+    queryKey: ['tasks'],
+    queryFn: mockApi.getTasks,
+  });
+};
 
 export const useTasksByDate = (date: string) => {
   return useQuery({
     queryKey: ['tasks', 'byDate', date],
-    queryFn: async () => {
-      return api.get<Task[]>(`/tasks/date/${date}`)
-    },
+    queryFn: () => mockApi.getTasksByDate(date),
     enabled: !!date,
-  })
-}
+  });
+};
 
 export const useCreateTask = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (data: CreateTaskRequest) => {
-      return api.post<Task>('/tasks', data)
-    },
+    mutationFn: (task: Omit<Task, 'id' | 'createdAt'>) => mockApi.createTask(task),
     onSuccess: () => {
-      invalidateQueries.tasks()
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
-  })
-}
+  });
+};
 
 export const useUpdateTask = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateTaskRequest }) => {
-      return api.put<Task>(`/tasks/${id}`, data)
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<Task> }) =>
+      mockApi.updateTask(id, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
-    onSuccess: (_, { id }) => {
-      invalidateQueries.tasks()
-      invalidateQueries.tasksByDate()
-    },
-  })
-}
+  });
+};
 
 export const useDeleteTask = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (id: string) => {
-      return api.delete(`/tasks/${id}`)
-    },
+    mutationFn: (id: string) => mockApi.deleteTask(id),
     onSuccess: () => {
-      invalidateQueries.tasks()
-      invalidateQueries.tasksByDate()
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
-  })
-}
+  });
+};
 
 export const useToggleTask = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
-      return api.patch<Task>(`/tasks/${id}/toggle`, { completed })
-    },
+    mutationFn: (id: string) => mockApi.toggleTask(id),
     onSuccess: () => {
-      invalidateQueries.tasks()
-      invalidateQueries.tasksByDate()
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
-  })
-}
+  });
+};
 
-// ===== HOOKS PARA NOTAS =====
-
-export const useNotes = (date?: string) => {
+// Notes Hooks
+export const useNotes = () => {
   return useQuery({
-    queryKey: ['notes', date],
-    queryFn: async () => {
-      const params = date ? { date } : {}
-      return api.get<Note[]>('/notes', params)
-    },
-  })
-}
+    queryKey: ['notes'],
+    queryFn: mockApi.getNotes,
+  });
+};
+
+export const useNotesByDate = (date: string) => {
+  return useQuery({
+    queryKey: ['notes', 'byDate', date],
+    queryFn: () => mockApi.getNotesByDate(date),
+    enabled: !!date,
+  });
+};
 
 export const useCreateNote = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (data: CreateNoteRequest) => {
-      return api.post<Note>('/notes', data)
-    },
+    mutationFn: (note: Omit<Note, 'id' | 'createdAt'>) => mockApi.createNote(note),
     onSuccess: () => {
-      invalidateQueries.notes()
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
     },
-  })
-}
+  });
+};
 
 export const useUpdateNote = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateNoteRequest }) => {
-      return api.put<Note>(`/notes/${id}`, data)
-    },
+    mutationFn: ({ id, content }: { id: string; content: string }) =>
+      mockApi.updateNote(id, content),
     onSuccess: () => {
-      invalidateQueries.notes()
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
     },
-  })
-}
+  });
+};
 
 export const useDeleteNote = () => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (id: string) => {
-      return api.delete(`/notes/${id}`)
-    },
+    mutationFn: (id: string) => mockApi.deleteNote(id),
     onSuccess: () => {
-      invalidateQueries.notes()
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
     },
-  })
-}
-
-// ===== HOOKS PARA AUTENTICAÇÃO =====
-
-export const useLogin = () => {
-  const queryClient = useQueryClient()
-  
-  return useMutation({
-    mutationFn: async (credentials: LoginRequest) => {
-      return api.post<{ user: User; token: string; refreshToken: string }>('/auth/login', credentials)
-    },
-    onSuccess: (data) => {
-      // Limpar cache ao fazer login
-      queryClient.clear()
-    },
-  })
-}
-
-export const useRegister = () => {
-  const queryClient = useQueryClient()
-  
-  return useMutation({
-    mutationFn: async (data: RegisterRequest) => {
-      return api.post<{ user: User; token: string; refreshToken: string }>('/auth/register', data)
-    },
-    onSuccess: () => {
-      // Limpar cache ao fazer registro
-      queryClient.clear()
-    },
-  })
-}
-
-export const useLogout = () => {
-  const queryClient = useQueryClient()
-  
-  return useMutation({
-    mutationFn: async () => {
-      return api.post('/auth/logout')
-    },
-    onSuccess: () => {
-      // Limpar cache ao fazer logout
-      queryClient.clear()
-    },
-  })
-}
-
-// ===== HOOKS PARA USUÁRIO =====
-
-export const useUser = () => {
-  return useQuery({
-    queryKey: ['user'],
-    queryFn: async () => {
-      return api.get<User>('/auth/me')
-    },
-    enabled: !!localStorage.getItem('auth_token'),
-  })
-}
-
-export const useUserProfile = () => {
-  return useQuery({
-    queryKey: ['user', 'profile'],
-    queryFn: async () => {
-      return api.get<User>('/auth/profile')
-    },
-    enabled: !!localStorage.getItem('auth_token'),
-  })
-}
-
-// ===== HOOKS PARA ANALYTICS =====
-
-export const useAnalytics = (dateRange?: { start: string; end: string }) => {
-  return useQuery({
-    queryKey: ['analytics', dateRange],
-    queryFn: async () => {
-      const params = dateRange ? { ...dateRange } : {}
-      return api.get<AnalyticsData>('/analytics', params)
-    },
-  })
-}
-
-// ===== HOOKS PARA GOOGLE CALENDAR =====
-
-export const useGoogleCalendarSync = () => {
-  const queryClient = useQueryClient()
-  
-  return useMutation({
-    mutationFn: async (direction: 'import' | 'export' | 'bidirectional') => {
-      return api.post('/google-calendar/sync', { direction })
-    },
-    onSuccess: () => {
-      // Invalidar queries relacionadas após sincronização
-      invalidateQueries.weeklySchedule()
-      invalidateQueries.tasks()
-    },
-  })
-}
-
-// ===== HOOKS UTILITÁRIOS =====
-
-export const useApiError = () => {
-  return (error: unknown) => {
-    if (error instanceof ApiException) {
-      // Aqui você pode implementar tratamento específico de erros
-      console.error('API Error:', error.message, error.status)
-      
-      // Exemplo: mostrar toast de erro
-      // toast.error(error.message)
-      
-      return error
-    }
-    
-    console.error('Unknown error:', error)
-    return new ApiException(0, 'Erro desconhecido')
-  }
-} 
+  });
+}; 

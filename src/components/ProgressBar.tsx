@@ -1,20 +1,30 @@
 import { TrendingUp, Target, Calendar } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import { useWeeklySchedule, useTasksByDate } from '../hooks/useApi';
 
 const ProgressBar = () => {
-  const { tasks, getWeeklyProgress } = useStore();
-  const progress = getWeeklyProgress();
+  const { data: weeklySchedule = [], isLoading: isLoadingSchedule } = useWeeklySchedule();
+  const { data: tasks = [], isLoading: isLoadingTasks } = useTasksByDate(useStore().selectedDate);
+  const { getWeeklyProgress } = useStore();
   
+  // Calcular progresso baseado na agenda semanal
   const today = new Date();
   const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
   
-  const weekTasks = tasks.filter(task => {
-    const taskDate = new Date(task.date);
-    return taskDate >= weekStart;
+  // Filtrar itens da semana atual
+  const weekItems = weeklySchedule.filter(item => {
+    const itemDate = new Date();
+    const dayOfWeek = itemDate.getDay();
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    return item.isActive && days[dayOfWeek] === item.dayOfWeek;
   });
   
-  const completedTasks = weekTasks.filter(task => task.completed);
-  const totalTasks = weekTasks.length;
+  const completedItems = weekItems.filter(item => item.completed);
+  const completedTasks = tasks.filter(task => task.completed);
+  
+  const totalItems = weekItems.length + tasks.length;
+  const totalCompleted = completedItems.length + completedTasks.length;
+  const progress = totalItems > 0 ? Math.round((totalCompleted / totalItems) * 100) : 0;
 
   const getProgressColor = (progress: number) => {
     if (progress >= 80) return 'from-green-500 to-emerald-600';
@@ -31,6 +41,16 @@ const ProgressBar = () => {
     return 'Novo começo! ✨';
   };
 
+  if (isLoadingSchedule || isLoadingTasks) {
+    return (
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100 p-6">
+        <div className="text-center py-8 text-gray-500">
+          Carregando progresso...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100 p-6 space-y-6">
       {/* Header */}
@@ -42,7 +62,7 @@ const ProgressBar = () => {
           <div>
             <h2 className="text-lg font-bold text-gray-900">Progresso Semanal</h2>
             <p className="text-sm text-gray-500">
-              {completedTasks.length} de {totalTasks} concluídas
+              {totalCompleted} de {totalItems} concluídas
             </p>
           </div>
         </div>
@@ -77,15 +97,27 @@ const ProgressBar = () => {
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border border-green-100">
           <div className="text-center space-y-2">
-            <div className="text-2xl font-bold text-green-600">{completedTasks.length}</div>
+            <div className="text-2xl font-bold text-green-600">{totalCompleted}</div>
             <div className="text-xs font-medium text-green-600 uppercase tracking-wide">Concluídas</div>
           </div>
         </div>
         <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-4 rounded-xl border border-blue-100">
           <div className="text-center space-y-2">
-            <div className="text-2xl font-bold text-blue-600">{totalTasks - completedTasks.length}</div>
+            <div className="text-2xl font-bold text-blue-600">{totalItems - totalCompleted}</div>
             <div className="text-xs font-medium text-blue-600 uppercase tracking-wide">Pendentes</div>
           </div>
+        </div>
+      </div>
+
+      {/* Breakdown */}
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-600">Agenda Semanal:</span>
+          <span className="font-medium">{completedItems.length}/{weekItems.length}</span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-600">Tarefas Independentes:</span>
+          <span className="font-medium">{completedTasks.length}/{tasks.length}</span>
         </div>
       </div>
 

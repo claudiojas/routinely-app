@@ -1,11 +1,16 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Plus, Calendar, Clock, Save, X, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { WeeklyScheduleItem } from '../data/mockApi';
-import { useStore } from '../store/useStore';
+import { 
+  useWeeklySchedule, 
+  useCreateScheduleItem, 
+  useUpdateScheduleItem, 
+  useDeleteScheduleItem 
+} from '../hooks/useApi';
 
 const DAYS = [
   { key: 'monday', label: 'Segunda-feira' },
@@ -26,15 +31,11 @@ const ACTIVITY_TYPES = [
 ] as const;
 
 const WeeklyScheduleManager = () => {
-  const { 
-    weeklySchedule, 
-    loadWeeklySchedule, 
-    addScheduleItem, 
-    updateScheduleItem, 
-    deleteScheduleItem 
-  } = useStore();
+  const { data: weeklySchedule = [], isLoading } = useWeeklySchedule();
+  const createScheduleItem = useCreateScheduleItem();
+  const updateScheduleItem = useUpdateScheduleItem();
+  const deleteScheduleItem = useDeleteScheduleItem();
   
-  const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState<(typeof DAYS)[number]['key']>('monday');
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<WeeklyScheduleItem | null>(null);
@@ -47,32 +48,20 @@ const WeeklyScheduleManager = () => {
     type: 'personal' as WeeklyScheduleItem['type'],
   });
 
-  useEffect(() => {
-    loadSchedule();
-  }, []);
-
-  const loadSchedule = async () => {
-    try {
-      setLoading(true);
-      await loadWeeklySchedule();
-    } catch (error) {
-      console.error('Erro ao carregar agenda:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
       if (editingItem) {
-        await updateScheduleItem(editingItem.id, {
-          ...formData,
-          dayOfWeek: selectedDay,
+        await updateScheduleItem.mutateAsync({
+          id: editingItem.id,
+          updates: {
+            ...formData,
+            dayOfWeek: selectedDay,
+          }
         });
       } else {
-        await addScheduleItem({
+        await createScheduleItem.mutateAsync({
           ...formData,
           dayOfWeek: selectedDay,
           isActive: true,
@@ -101,7 +90,7 @@ const WeeklyScheduleManager = () => {
   const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir este item?')) {
       try {
-        await deleteScheduleItem(id);
+        await deleteScheduleItem.mutateAsync(id);
       } catch (error) {
         console.error('Erro ao deletar item:', error);
       }
@@ -130,7 +119,7 @@ const WeeklyScheduleManager = () => {
     return ACTIVITY_TYPES.find(t => t.value === type)?.color || 'bg-gray-500';
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-white text-lg">Carregando agenda...</div>
@@ -202,18 +191,22 @@ const WeeklyScheduleManager = () => {
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <button
+                  <Button
+                    size="sm"
+                    variant="ghost"
                     onClick={() => handleEdit(item)}
-                    className="p-2 text-slate-400 hover:text-violet-400 transition-colors"
+                    className="text-slate-400 hover:text-white"
                   >
                     <Edit className="w-4 h-4" />
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
                     onClick={() => handleDelete(item.id)}
-                    className="p-2 text-slate-400 hover:text-red-400 transition-colors"
+                    className="text-red-400 hover:text-red-300"
                   >
                     <Trash2 className="w-4 h-4" />
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -230,68 +223,70 @@ const WeeklyScheduleManager = () => {
         {/* Form Modal */}
         {showForm && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-800 rounded-2xl p-6 w-full max-w-md border border-slate-700">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">
+            <div className="bg-slate-800 rounded-xl p-6 w-full max-w-md">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-white text-lg font-medium">
                   {editingItem ? 'Editar Atividade' : 'Nova Atividade'}
-                </h2>
-                <button
+                </h3>
+                <Button
+                  size="sm"
+                  variant="ghost"
                   onClick={resetForm}
                   className="text-slate-400 hover:text-white"
                 >
-                  <X className="w-5 h-5" />
-                </button>
+                  <X className="w-4 h-4" />
+                </Button>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     Atividade
                   </label>
                   <Input
                     value={formData.activity}
-                    onChange={(e) => setFormData(prev => ({ ...prev, activity: e.target.value }))}
-                    placeholder="Ex: Exercício matinal, Estudo de inglês..."
-                    required
+                    onChange={(e) => setFormData({ ...formData, activity: e.target.value })}
+                    placeholder="Ex: Exercício matinal"
                     className="bg-slate-700 border-slate-600 text-white"
+                    required
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1">
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
                       Início
                     </label>
                     <Input
                       type="time"
                       value={formData.startTime}
-                      onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
-                      required
+                      onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
                       className="bg-slate-700 border-slate-600 text-white"
+                      required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-1">
+                    <label className="block text-sm font-medium text-slate-300 mb-2">
                       Fim
                     </label>
                     <Input
                       type="time"
                       value={formData.endTime}
-                      onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
-                      required
+                      onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
                       className="bg-slate-700 border-slate-600 text-white"
+                      required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     Tipo
                   </label>
                   <select
                     value={formData.type}
-                    onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value as WeeklyScheduleItem['type'] }))}
-                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-md p-2"
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value as WeeklyScheduleItem['type'] })}
+                    className="w-full bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-white"
                   >
                     {ACTIVITY_TYPES.map(type => (
                       <option key={type.value} value={type.value}>
@@ -302,12 +297,12 @@ const WeeklyScheduleManager = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     Observações
                   </label>
                   <Textarea
                     value={formData.notes}
-                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     placeholder="Detalhes sobre a atividade..."
                     className="bg-slate-700 border-slate-600 text-white"
                     rows={3}
@@ -317,15 +312,20 @@ const WeeklyScheduleManager = () => {
                 <div className="flex gap-3 pt-4">
                   <Button
                     type="submit"
-                    className="flex-1 bg-violet-600 hover:bg-violet-700"
+                    className="flex-1 bg-violet-600 hover:bg-violet-700 text-white"
+                    disabled={createScheduleItem.isPending || updateScheduleItem.isPending}
                   >
-                    <Save className="w-4 h-4 mr-2" />
+                    {createScheduleItem.isPending || updateScheduleItem.isPending ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    ) : (
+                      <Save className="w-4 h-4 mr-2" />
+                    )}
                     {editingItem ? 'Atualizar' : 'Salvar'}
                   </Button>
                   <Button
                     type="button"
-                    onClick={resetForm}
                     variant="outline"
+                    onClick={resetForm}
                     className="border-slate-600 text-slate-300 hover:bg-slate-700"
                   >
                     Cancelar

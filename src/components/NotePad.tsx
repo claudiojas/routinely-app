@@ -2,29 +2,41 @@
 import { useState, useEffect } from 'react';
 import { Save, Edit3 } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import { useNotesByDate, useCreateNote, useUpdateNote } from '../hooks/useApi';
 
 const NotePad = () => {
-  const { notes, selectedDate, addNote, updateNote } = useStore();
+  const { selectedDate } = useStore();
+  const { data: notes = [], isLoading } = useNotesByDate(selectedDate);
+  const createNote = useCreateNote();
+  const updateNote = useUpdateNote();
+  
   const [content, setContent] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   
-  const todayNote = notes.find(note => note.date === selectedDate);
+  const todayNote = notes[0]; // Pegar a primeira nota do dia
 
   useEffect(() => {
     setContent(todayNote?.content || '');
     setIsEditing(false);
   }, [todayNote, selectedDate]);
 
-  const handleSave = () => {
-    if (todayNote) {
-      updateNote(todayNote.id, content);
-    } else {
-      addNote({
-        content,
-        date: selectedDate,
-      });
+  const handleSave = async () => {
+    try {
+      if (todayNote) {
+        await updateNote.mutateAsync({
+          id: todayNote.id,
+          content
+        });
+      } else {
+        await createNote.mutateAsync({
+          content,
+          date: selectedDate,
+        });
+      }
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Erro ao salvar nota:', error);
     }
-    setIsEditing(false);
   };
 
   const formatDate = (dateString: string) => {
@@ -35,6 +47,16 @@ const NotePad = () => {
       month: 'long'
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="text-center py-8 text-gray-500">
+          Carregando notas...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -55,10 +77,15 @@ const NotePad = () => {
         ) : (
           <button
             onClick={handleSave}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
+            disabled={createNote.isPending || updateNote.isPending}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2 disabled:opacity-50"
           >
-            <Save className="h-4 w-4" />
-            <span>Salvar</span>
+            {createNote.isPending || updateNote.isPending ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            <span>{createNote.isPending || updateNote.isPending ? 'Salvando...' : 'Salvar'}</span>
           </button>
         )}
       </div>

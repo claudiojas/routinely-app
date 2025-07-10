@@ -1,39 +1,25 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Check, Trash2, StickyNote } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import { 
+  useWeeklySchedule, 
+  useUpdateScheduleItem, 
+  useDeleteScheduleItem 
+} from '../hooks/useApi';
+import { WeeklyScheduleItem } from '../data/mockApi';
 
 const TaskList = () => {
-  const { 
-    selectedDate, 
-    weeklySchedule, 
-    loadWeeklySchedule, 
-    getTodayScheduleItems,
-    deleteScheduleItem,
-    updateScheduleItem
-  } = useStore();
+  const { selectedDate, getTodayScheduleItems } = useStore();
+  const { data: weeklySchedule = [], isLoading } = useWeeklySchedule();
+  const updateScheduleItem = useUpdateScheduleItem();
+  const deleteScheduleItem = useDeleteScheduleItem();
   
-  const [loading, setLoading] = useState(true);
   const [showNoteModal, setShowNoteModal] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [selectedTask, setSelectedTask] = useState<WeeklyScheduleItem | null>(null);
   const [noteText, setNoteText] = useState('');
 
-  useEffect(() => {
-    loadSchedule();
-  }, []);
-
-  const loadSchedule = async () => {
-    try {
-      setLoading(true);
-      await loadWeeklySchedule();
-    } catch (error) {
-      console.error('Erro ao carregar agenda:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const todayScheduleItems = getTodayScheduleItems(selectedDate);
+  const todayScheduleItems = getTodayScheduleItems(weeklySchedule, selectedDate);
 
   const typeLabels = {
     study: 'Estudo',
@@ -53,7 +39,10 @@ const TaskList = () => {
 
   const handleToggleComplete = async (id: string, completed: boolean) => {
     try {
-      await updateScheduleItem(id, { completed: !completed });
+      await updateScheduleItem.mutateAsync({
+        id,
+        updates: { completed: !completed }
+      });
     } catch (error) {
       console.error('Erro ao atualizar tarefa:', error);
     }
@@ -62,14 +51,14 @@ const TaskList = () => {
   const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
       try {
-        await deleteScheduleItem(id);
+        await deleteScheduleItem.mutateAsync(id);
       } catch (error) {
         console.error('Erro ao excluir tarefa:', error);
       }
     }
   };
 
-  const handleAddNote = (task: any) => {
+  const handleAddNote = (task: WeeklyScheduleItem) => {
     setSelectedTask(task);
     setNoteText(task.notes || '');
     setShowNoteModal(true);
@@ -78,7 +67,10 @@ const TaskList = () => {
   const handleSaveNote = async () => {
     if (selectedTask) {
       try {
-        await updateScheduleItem(selectedTask.id, { notes: noteText });
+        await updateScheduleItem.mutateAsync({
+          id: selectedTask.id,
+          updates: { notes: noteText }
+        });
         setShowNoteModal(false);
         setSelectedTask(null);
         setNoteText('');
@@ -88,7 +80,7 @@ const TaskList = () => {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="text-center py-8 text-gray-500">
@@ -198,23 +190,23 @@ const TaskList = () => {
               />
             </div>
             
-            <div className="flex justify-end space-x-3">
+            <div className="flex space-x-3">
               <button
-                type="button"
+                onClick={handleSaveNote}
+                disabled={updateScheduleItem.isPending}
+                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                {updateScheduleItem.isPending ? 'Salvando...' : 'Salvar'}
+              </button>
+              <button
                 onClick={() => {
                   setShowNoteModal(false);
                   setSelectedTask(null);
                   setNoteText('');
                 }}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400"
               >
                 Cancelar
-              </button>
-              <button
-                onClick={handleSaveNote}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                Salvar
               </button>
             </div>
           </div>
