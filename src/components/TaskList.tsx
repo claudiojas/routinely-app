@@ -3,23 +3,45 @@ import React, { useState } from 'react';
 import { Check, Trash2, StickyNote } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { 
-  useWeeklySchedule, 
-  useUpdateScheduleItem, 
-  useDeleteScheduleItem 
+  useActivities, 
+  useUpdateActivity, 
+  useDeleteActivity 
 } from '../hooks/useApi';
-import { WeeklyScheduleItem } from '../data/mockApi';
+import { Activity } from '../hooks/useApi';
+
+// Tipo para compatibilidade com o componente existente
+type WeeklyScheduleItem = {
+  id: string;
+  activity: string;
+  startTime: string;
+  endTime: string;
+  type: string;
+  completed?: boolean;
+  notes?: string;
+};
 
 const TaskList = () => {
-  const { selectedDate, getTodayScheduleItems } = useStore();
-  const { data: weeklySchedule = [], isLoading } = useWeeklySchedule();
-  const updateScheduleItem = useUpdateScheduleItem();
-  const deleteScheduleItem = useDeleteScheduleItem();
+  const { selectedDate } = useStore();
+  const { data: activities = [], isLoading } = useActivities();
+  const updateActivity = useUpdateActivity();
+  const deleteActivity = useDeleteActivity();
   
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<WeeklyScheduleItem | null>(null);
   const [noteText, setNoteText] = useState('');
 
-  const todayScheduleItems = getTodayScheduleItems(weeklySchedule, selectedDate);
+  // Converter atividades para o formato esperado pelo componente
+  const weeklySchedule: WeeklyScheduleItem[] = activities.map(activity => ({
+    id: activity.id,
+    activity: activity.title,
+    startTime: activity.startTime || '09:00',
+    endTime: activity.endTime || '10:00',
+    type: activity.type.toLowerCase(),
+    completed: false, // A API real não tem campo completed
+    notes: activity.description,
+  }));
+
+  const todayScheduleItems = weeklySchedule; // Simplificado por enquanto
 
   const typeLabels = {
     study: 'Estudo',
@@ -39,10 +61,8 @@ const TaskList = () => {
 
   const handleToggleComplete = async (id: string, completed: boolean) => {
     try {
-      await updateScheduleItem.mutateAsync({
-        id,
-        updates: { completed: !completed }
-      });
+      // A API real não tem campo completed, então vamos simular
+      console.log('Toggle completed:', id, !completed);
     } catch (error) {
       console.error('Erro ao atualizar tarefa:', error);
     }
@@ -51,7 +71,7 @@ const TaskList = () => {
   const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
       try {
-        await deleteScheduleItem.mutateAsync(id);
+        await deleteActivity.mutateAsync(id);
       } catch (error) {
         console.error('Erro ao excluir tarefa:', error);
       }
@@ -67,9 +87,9 @@ const TaskList = () => {
   const handleSaveNote = async () => {
     if (selectedTask) {
       try {
-        await updateScheduleItem.mutateAsync({
+        await updateActivity.mutateAsync({
           id: selectedTask.id,
-          updates: { notes: noteText }
+          data: { description: noteText }
         });
         setShowNoteModal(false);
         setSelectedTask(null);
@@ -191,13 +211,13 @@ const TaskList = () => {
             </div>
             
             <div className="flex space-x-3">
-              <button
-                onClick={handleSaveNote}
-                disabled={updateScheduleItem.isPending}
-                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-              >
-                {updateScheduleItem.isPending ? 'Salvando...' : 'Salvar'}
-              </button>
+                              <button
+                  onClick={handleSaveNote}
+                  disabled={updateActivity.isPending}
+                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {updateActivity.isPending ? 'Salvando...' : 'Salvar'}
+                </button>
               <button
                 onClick={() => {
                   setShowNoteModal(false);

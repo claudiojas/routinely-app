@@ -1,11 +1,22 @@
 import { TrendingUp, Target, Calendar } from 'lucide-react';
 import { useStore } from '../store/useStore';
-import { useWeeklySchedule, useTasksByDate } from '../hooks/useApi';
+import { useActivities, useTasksByDate } from '../hooks/useApi';
 
 const ProgressBar = () => {
-  const { data: weeklySchedule = [], isLoading: isLoadingSchedule } = useWeeklySchedule();
+  const { data: activities = [], isLoading: isLoadingSchedule } = useActivities();
   const { data: tasks = [], isLoading: isLoadingTasks } = useTasksByDate(useStore().selectedDate);
-  const { getWeeklyProgress } = useStore();
+  
+  // Converter atividades para o formato esperado
+  const weeklySchedule = activities.map(activity => ({
+    id: activity.id,
+    activity: activity.title,
+    startTime: activity.startTime || '09:00',
+    endTime: activity.endTime || '10:00',
+    type: activity.type.toLowerCase(),
+    dayOfWeek: 'monday', // Simplificado por enquanto
+    completed: false, // A API real não tem campo completed
+    isActive: true,
+  }));
   
   // Calcular progresso baseado na agenda semanal
   const today = new Date();

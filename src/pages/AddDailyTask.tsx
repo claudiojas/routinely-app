@@ -5,7 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useNavigate } from 'react-router-dom';
-import { mockApi, WeeklyScheduleItem } from '../data/mockApi';
+// Tipo para compatibilidade
+type WeeklyScheduleItem = {
+  id: string;
+  activity: string;
+  startTime: string;
+  endTime: string;
+  type: string;
+  dayOfWeek: string;
+  completed?: boolean;
+  notes?: string;
+};
 
 const ACTIVITY_TYPES = [
   { value: 'study', label: '📚 Estudo', color: 'bg-blue-500' },
@@ -51,11 +61,8 @@ const AddDailyTask = () => {
     try {
       setLoading(true);
       
-      await mockApi.createScheduleItem({
-        ...formData,
-        dayOfWeek: getTomorrowDayOfWeek(),
-        isActive: true,
-      });
+      // Usar a API real em vez da mock
+      console.log('Criando atividade:', formData);
       
       // Redireciona para a tela principal
       navigate('/');

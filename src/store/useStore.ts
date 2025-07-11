@@ -1,5 +1,15 @@
 import { create } from 'zustand';
-import { WeeklyScheduleItem } from '../data/mockApi';
+// Tipo para compatibilidade
+type WeeklyScheduleItem = {
+  id: string;
+  activity: string;
+  startTime: string;
+  endTime: string;
+  type: string;
+  dayOfWeek: string;
+  completed?: boolean;
+  notes?: string;
+};
 
 export interface Task {
   id: string;

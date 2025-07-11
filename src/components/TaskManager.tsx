@@ -9,21 +9,27 @@ import {
   useCreateTask, 
   useUpdateTask, 
   useDeleteTask, 
-  useToggleTask 
+  useToggleTask,
+  useActivityTypes
 } from '../hooks/useApi';
-import { Task } from '../data/mockApi';
+import { Activity } from '../hooks/useApi';
 
-const TASK_TYPES = [
-  { value: 'study', label: '📚 Estudo', color: 'bg-blue-500' },
-  { value: 'exercise', label: '💪 Exercício', color: 'bg-green-500' },
-  { value: 'work', label: '💼 Trabalho', color: 'bg-purple-500' },
-  { value: 'personal', label: '🏠 Pessoal', color: 'bg-orange-500' },
-  { value: 'other', label: '📝 Outro', color: 'bg-gray-500' },
-] as const;
+// Tipo para compatibilidade com o componente existente
+type Task = {
+  id: string;
+  title: string;
+  description?: string;
+  type: 'pessoal' | 'trabalho' | 'estudo' | 'saude' | 'outro';
+  completed?: boolean;
+  date?: string;
+  notes?: string;
+};
 
 const TaskManager = () => {
   const { selectedDate } = useStore();
-  const { data: tasks = [], isLoading } = useTasksByDate(selectedDate);
+  const { data: tasks = [], isLoading: isLoadingTasks } = useTasksByDate(selectedDate);
+  const { data: activityTypes = [], isLoading: isLoadingTypes } = useActivityTypes();
+  
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
@@ -46,14 +52,11 @@ const TaskManager = () => {
           id: editingTask.id,
           updates: {
             ...formData,
-            date: selectedDate,
           }
         });
       } else {
         await createTask.mutateAsync({
           ...formData,
-          completed: false,
-          date: selectedDate,
         });
       }
       
@@ -95,15 +98,24 @@ const TaskManager = () => {
     setFormData({
       title: '',
       description: '',
-      type: 'personal',
+      type: 'pessoal',
     });
     setEditingTask(null);
     setShowForm(false);
   };
 
   const getTypeColor = (type: Task['type']) => {
-    return TASK_TYPES.find(t => t.value === type)?.color || 'bg-gray-500';
+    const typeMap: Record<string, string> = {
+      'pessoal': 'bg-orange-500',
+      'trabalho': 'bg-purple-500',
+      'estudo': 'bg-blue-500',
+      'saude': 'bg-green-500',
+      'outro': 'bg-gray-500',
+    };
+    return typeMap[type] || 'bg-gray-500';
   };
+
+  const isLoading = isLoadingTasks || isLoadingTypes;
 
   if (isLoading) {
     return (
@@ -256,7 +268,7 @@ const TaskManager = () => {
                   onChange={(e) => setFormData({ ...formData, type: e.target.value as Task['type'] })}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                 >
-                  {TASK_TYPES.map(type => (
+                  {activityTypes.map(type => (
                     <option key={type.value} value={type.value}>
                       {type.label}
                     </option>

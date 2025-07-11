@@ -4,39 +4,36 @@ import { Plus, Calendar, Clock, Save, X, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { WeeklyScheduleItem } from '../data/mockApi';
+// Tipo para compatibilidade
+type WeeklyScheduleItem = {
+  id: string;
+  activity: string;
+  startTime: string;
+  endTime: string;
+  type: string;
+  dayOfWeek: string;
+  completed?: boolean;
+  notes?: string;
+};
 import { 
-  useWeeklySchedule, 
-  useCreateScheduleItem, 
-  useUpdateScheduleItem, 
-  useDeleteScheduleItem 
+  useActivities, 
+  useCreateActivity, 
+  useUpdateActivity, 
+  useDeleteActivity,
+  useDaysOfWeek,
+  useActivityTypes
 } from '../hooks/useApi';
 
-const DAYS = [
-  { key: 'monday', label: 'Segunda-feira' },
-  { key: 'tuesday', label: 'Terça-feira' },
-  { key: 'wednesday', label: 'Quarta-feira' },
-  { key: 'thursday', label: 'Quinta-feira' },
-  { key: 'friday', label: 'Sexta-feira' },
-  { key: 'saturday', label: 'Sábado' },
-  { key: 'sunday', label: 'Domingo' },
-] as const;
-
-const ACTIVITY_TYPES = [
-  { value: 'study', label: '📚 Estudo', color: 'bg-blue-500' },
-  { value: 'exercise', label: '💪 Exercício', color: 'bg-green-500' },
-  { value: 'work', label: '💼 Trabalho', color: 'bg-purple-500' },
-  { value: 'personal', label: '🏠 Pessoal', color: 'bg-orange-500' },
-  { value: 'other', label: '📝 Outro', color: 'bg-gray-500' },
-] as const;
-
 const WeeklyScheduleManager = () => {
-  const { data: weeklySchedule = [], isLoading } = useWeeklySchedule();
-  const createScheduleItem = useCreateScheduleItem();
-  const updateScheduleItem = useUpdateScheduleItem();
-  const deleteScheduleItem = useDeleteScheduleItem();
+  const { data: activities = [], isLoading: isLoadingSchedule } = useActivities();
+  const { data: daysOfWeek = [], isLoading: isLoadingDays } = useDaysOfWeek();
+  const { data: activityTypes = [], isLoading: isLoadingTypes } = useActivityTypes();
   
-  const [selectedDay, setSelectedDay] = useState<(typeof DAYS)[number]['key']>('monday');
+  const createActivity = useCreateActivity();
+  const updateActivity = useUpdateActivity();
+  const deleteActivity = useDeleteActivity();
+  
+  const [selectedDay, setSelectedDay] = useState<WeeklyScheduleItem['dayOfWeek']>('monday');
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<WeeklyScheduleItem | null>(null);
   
@@ -53,18 +50,21 @@ const WeeklyScheduleManager = () => {
     
     try {
       if (editingItem) {
-        await updateScheduleItem.mutateAsync({
+        await updateActivity.mutateAsync({
           id: editingItem.id,
-          updates: {
-            ...formData,
-            dayOfWeek: selectedDay,
+          data: {
+            title: formData.activity,
+            description: formData.notes,
+            type: formData.type.toUpperCase() as 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO',
           }
         });
       } else {
-        await createScheduleItem.mutateAsync({
-          ...formData,
-          dayOfWeek: selectedDay,
-          isActive: true,
+        await createActivity.mutateAsync({
+          title: formData.activity,
+          description: formData.notes,
+          type: formData.type.toUpperCase() as 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO',
+          startTime: formData.startTime,
+          endTime: formData.endTime,
         });
       }
       
@@ -90,7 +90,7 @@ const WeeklyScheduleManager = () => {
   const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir este item?')) {
       try {
-        await deleteScheduleItem.mutateAsync(id);
+        await deleteActivity.mutateAsync(id);
       } catch (error) {
         console.error('Erro ao deletar item:', error);
       }
@@ -109,15 +109,35 @@ const WeeklyScheduleManager = () => {
     setShowForm(false);
   };
 
-  const getScheduleForDay = (day: (typeof DAYS)[number]['key']) => {
+  // Converter atividades para o formato esperado
+  const weeklySchedule: WeeklyScheduleItem[] = activities.map(activity => ({
+    id: activity.id,
+    activity: activity.title,
+    startTime: activity.startTime || '09:00',
+    endTime: activity.endTime || '10:00',
+    type: activity.type.toLowerCase(),
+    dayOfWeek: 'monday', // Simplificado por enquanto
+    notes: activity.description,
+  }));
+
+  const getScheduleForDay = (day: WeeklyScheduleItem['dayOfWeek']) => {
     return weeklySchedule
-      .filter(item => item.dayOfWeek === day && item.isActive)
+      .filter(item => item.dayOfWeek === day)
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
   };
 
   const getTypeColor = (type: WeeklyScheduleItem['type']) => {
-    return ACTIVITY_TYPES.find(t => t.value === type)?.color || 'bg-gray-500';
+    const typeMap: Record<string, string> = {
+      'personal': 'bg-orange-500',
+      'work': 'bg-purple-500',
+      'study': 'bg-blue-500',
+      'health': 'bg-green-500',
+      'other': 'bg-gray-500',
+    };
+    return typeMap[type] || 'bg-gray-500';
   };
+
+  const isLoading = isLoadingSchedule || isLoadingDays || isLoadingTypes;
 
   if (isLoading) {
     return (
@@ -143,7 +163,7 @@ const WeeklyScheduleManager = () => {
         {/* Day Selector */}
         <div className="mb-8">
           <div className="grid grid-cols-2 md:grid-cols-7 gap-2">
-            {DAYS.map(day => (
+            {daysOfWeek.map(day => (
               <button
                 key={day.key}
                 onClick={() => setSelectedDay(day.key)}
@@ -288,7 +308,7 @@ const WeeklyScheduleManager = () => {
                     onChange={(e) => setFormData({ ...formData, type: e.target.value as WeeklyScheduleItem['type'] })}
                     className="w-full bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-white"
                   >
-                    {ACTIVITY_TYPES.map(type => (
+                    {activityTypes.map(type => (
                       <option key={type.value} value={type.value}>
                         {type.label}
                       </option>
@@ -313,9 +333,9 @@ const WeeklyScheduleManager = () => {
                   <Button
                     type="submit"
                     className="flex-1 bg-violet-600 hover:bg-violet-700 text-white"
-                    disabled={createScheduleItem.isPending || updateScheduleItem.isPending}
+                    disabled={createActivity.isPending || updateActivity.isPending}
                   >
-                    {createScheduleItem.isPending || updateScheduleItem.isPending ? (
+                    {createActivity.isPending || updateActivity.isPending ? (
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                     ) : (
                       <Save className="w-4 h-4 mr-2" />

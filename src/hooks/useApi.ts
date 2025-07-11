@@ -1,129 +1,420 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { mockApi, WeeklyScheduleItem, Task, Note } from '../data/mockApi';
 
-// Weekly Schedule Hooks
-export const useWeeklySchedule = () => {
+// Tipos baseados na API real
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Activity {
+  id: string;
+  userId: string;
+  title: string;
+  description: string | null;
+  type: 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO';
+  startTime: string;
+  endTime: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreateUserRequest {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface CreateActivityRequest {
+  title: string;
+  description?: string;
+  type: 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO';
+  startTime: string;
+  endTime: string;
+}
+
+export interface UpdateActivityRequest {
+  title?: string;
+  description?: string;
+  type?: 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO';
+  startTime?: string;
+  endTime?: string;
+}
+
+export interface ApiResponse<T> {
+  data?: T;
+  error?: string;
+}
+
+export interface LoginResponse {
+  user: User;
+  token: string;
+}
+
+// Configuração da API usando fetch nativo
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+// Função utilitária para fazer requisições
+async function apiRequest<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<ApiResponse<T>> {
+  try {
+    const token = localStorage.getItem('auth_token');
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string>),
+    };
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        // Token expirado ou inválido
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
+      
+      const errorData = await response.json().catch(() => ({}));
+      return {
+        error: errorData.error || `Erro ${response.status}: ${response.statusText}`
+      };
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro de conexão';
+    return {
+      error: errorMessage
+    };
+  }
+}
+
+// Utilitários de autenticação
+export const setAuthToken = (token: string) => {
+  localStorage.setItem('auth_token', token);
+};
+
+export const getAuthToken = (): string | null => {
+  return localStorage.getItem('auth_token');
+};
+
+export const removeAuthToken = () => {
+  localStorage.removeItem('auth_token');
+  localStorage.removeItem('user');
+};
+
+export const isAuthenticated = (): boolean => {
+  return !!getAuthToken();
+};
+
+// ===== HOOKS DE AUTENTICAÇÃO =====
+
+export const useLogin = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (data: LoginRequest) => {
+      const response = await apiRequest<LoginResponse>('/userLogin', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      return response.data!;
+    },
+    onSuccess: (response) => {
+      setAuthToken(response.token);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      queryClient.setQueryData(['user'], response.user);
+    },
+  });
+};
+
+export const useSignUp = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (data: CreateUserRequest) => {
+      const response = await apiRequest<LoginResponse>('/user', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      return response.data!;
+    },
+    onSuccess: (response) => {
+      setAuthToken(response.token);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      queryClient.setQueryData(['user'], response.user);
+    },
+  });
+};
+
+export const useLogout = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: () => {
+      removeAuthToken();
+      return Promise.resolve();
+    },
+    onSuccess: () => {
+      queryClient.clear();
+    },
+  });
+};
+
+// ===== HOOKS DE ATIVIDADES =====
+
+export const useActivities = () => {
   return useQuery({
-    queryKey: ['weeklySchedule'],
-    queryFn: mockApi.getWeeklySchedule,
+    queryKey: ['activities'],
+    queryFn: async () => {
+      const response = await apiRequest<Activity[]>('/activities');
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data || [];
+    },
+    enabled: isAuthenticated(),
   });
 };
 
-export const useWeeklyScheduleByDay = (dayOfWeek: WeeklyScheduleItem['dayOfWeek']) => {
+export const useCreateActivity = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (data: CreateActivityRequest) => {
+      const response = await apiRequest<Activity>('/activities', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      return response.data!;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+    },
+  });
+};
+
+export const useUpdateActivity = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: UpdateActivityRequest }) => {
+      const response = await apiRequest<Activity>(`/activities/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      return response.data!;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+    },
+  });
+};
+
+export const useDeleteActivity = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest<void>(`/activities/${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+    },
+  });
+};
+
+// ===== HOOKS DE CONFIGURAÇÃO =====
+
+// Tipos de atividade baseados na API real
+const ACTIVITY_TYPES = [
+  { value: 'PESSOAL', label: '🏠 Pessoal', color: 'bg-orange-500' },
+  { value: 'TRABALHO', label: '💼 Trabalho', color: 'bg-purple-500' },
+  { value: 'ESTUDO', label: '📚 Estudo', color: 'bg-blue-500' },
+  { value: 'SAUDE', label: '💪 Saúde', color: 'bg-green-500' },
+  { value: 'OUTRO', label: '📝 Outro', color: 'bg-gray-500' },
+] as const;
+
+export const useActivityTypes = () => {
   return useQuery({
-    queryKey: ['weeklySchedule', 'byDay', dayOfWeek],
-    queryFn: () => mockApi.getScheduleByDay(dayOfWeek),
-    enabled: !!dayOfWeek,
+    queryKey: ['activityTypes'],
+    queryFn: () => Promise.resolve(ACTIVITY_TYPES),
   });
 };
 
-export const useCreateScheduleItem = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (item: Omit<WeeklyScheduleItem, 'id'>) => mockApi.createScheduleItem(item),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['weeklySchedule'] });
+// Dias da semana
+const DAYS_OF_WEEK = [
+  { key: 'monday', label: 'Segunda-feira' },
+  { key: 'tuesday', label: 'Terça-feira' },
+  { key: 'wednesday', label: 'Quarta-feira' },
+  { key: 'thursday', label: 'Quinta-feira' },
+  { key: 'friday', label: 'Sexta-feira' },
+  { key: 'saturday', label: 'Sábado' },
+  { key: 'sunday', label: 'Domingo' },
+] as const;
+
+export const useDaysOfWeek = () => {
+  return useQuery({
+    queryKey: ['daysOfWeek'],
+    queryFn: () => Promise.resolve(DAYS_OF_WEEK),
+  });
+};
+
+// ===== HOOKS DE UTILIDADE =====
+
+export const useAuth = () => {
+  return useQuery({
+    queryKey: ['auth'],
+    queryFn: () => {
+      const user = localStorage.getItem('user');
+      return user ? JSON.parse(user) : null;
     },
+    enabled: isAuthenticated(),
   });
 };
 
-export const useUpdateScheduleItem = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<WeeklyScheduleItem> }) =>
-      mockApi.updateScheduleItem(id, updates),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['weeklySchedule'] });
-    },
-  });
-};
+// ===== HOOKS COMPATIBILIDADE (para manter componentes existentes) =====
 
-export const useDeleteScheduleItem = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (id: string) => mockApi.deleteScheduleItem(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['weeklySchedule'] });
-    },
-  });
-};
+// Mapeamento de tipos da API real para os tipos antigos
+const mapActivityToLegacy = (activity: Activity) => ({
+  id: activity.id,
+  title: activity.title,
+  description: activity.description || '',
+  completed: false, // A API real não tem campo completed
+  date: new Date().toISOString().split('T')[0], // Usar data atual
+  type: activity.type.toLowerCase() as 'pessoal' | 'trabalho' | 'estudo' | 'saude' | 'outro',
+  isGoogleSynced: false,
+  createdAt: activity.createdAt,
+  notes: activity.description,
+});
 
-// Tasks Hooks
 export const useTasks = () => {
-  return useQuery({
-    queryKey: ['tasks'],
-    queryFn: mockApi.getTasks,
-  });
+  const { data: activities = [], isLoading, error } = useActivities();
+  
+  return {
+    data: activities.map(mapActivityToLegacy),
+    isLoading,
+    error,
+  };
 };
 
 export const useTasksByDate = (date: string) => {
-  return useQuery({
-    queryKey: ['tasks', 'byDate', date],
-    queryFn: () => mockApi.getTasksByDate(date),
-    enabled: !!date,
-  });
+  const { data: activities = [], isLoading, error } = useActivities();
+  
+  return {
+    data: activities.map(mapActivityToLegacy),
+    isLoading,
+    error,
+  };
 };
 
 export const useCreateTask = () => {
-  const queryClient = useQueryClient();
+  const mutation = useCreateActivity();
   
-  return useMutation({
-    mutationFn: (task: Omit<Task, 'id' | 'createdAt'>) => mockApi.createTask(task),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+  return {
+    mutateAsync: (task: { title: string; description?: string; type: string }) => {
+      const activityData: CreateActivityRequest = {
+        title: task.title,
+        description: task.description || '',
+        type: task.type.toUpperCase() as 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO',
+        startTime: '09:00', // Valores padrão
+        endTime: '10:00',
+      };
+      return mutation.mutateAsync(activityData);
     },
-  });
+    isPending: mutation.isPending,
+  };
 };
 
 export const useUpdateTask = () => {
-  const queryClient = useQueryClient();
+  const mutation = useUpdateActivity();
   
-  return useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<Task> }) =>
-      mockApi.updateTask(id, updates),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+  return {
+    mutateAsync: ({ id, updates }: { id: string; updates: { title?: string; description?: string; type?: string } }) => {
+      const activityData: UpdateActivityRequest = {
+        title: updates.title,
+        description: updates.description,
+        type: updates.type?.toUpperCase() as 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO' | undefined,
+      };
+      return mutation.mutateAsync({ id, data: activityData });
     },
-  });
+    isPending: mutation.isPending,
+  };
 };
 
 export const useDeleteTask = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (id: string) => mockApi.deleteTask(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-    },
-  });
+  return useDeleteActivity();
 };
 
 export const useToggleTask = () => {
-  const queryClient = useQueryClient();
+  // A API real não tem toggle, então vamos simular
+  const mutation = useUpdateActivity();
   
-  return useMutation({
-    mutationFn: (id: string) => mockApi.toggleTask(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+  return {
+    mutateAsync: (id: string) => {
+      // Simular toggle (não implementado na API real)
+      return Promise.resolve();
     },
-  });
+    isPending: mutation.isPending,
+  };
 };
 
-// Notes Hooks
+// ===== HOOKS DE NOTAS (não implementados na API real) =====
+
 export const useNotes = () => {
   return useQuery({
     queryKey: ['notes'],
-    queryFn: mockApi.getNotes,
+    queryFn: () => Promise.resolve([]),
   });
 };
 
 export const useNotesByDate = (date: string) => {
   return useQuery({
     queryKey: ['notes', 'byDate', date],
-    queryFn: () => mockApi.getNotesByDate(date),
+    queryFn: () => Promise.resolve([]),
     enabled: !!date,
   });
 };
@@ -132,7 +423,7 @@ export const useCreateNote = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (note: Omit<Note, 'id' | 'createdAt'>) => mockApi.createNote(note),
+    mutationFn: (note: { content: string; date?: string }) => Promise.resolve(note),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
     },
@@ -144,7 +435,7 @@ export const useUpdateNote = () => {
   
   return useMutation({
     mutationFn: ({ id, content }: { id: string; content: string }) =>
-      mockApi.updateNote(id, content),
+      Promise.resolve({ id, content }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
     },
@@ -155,7 +446,7 @@ export const useDeleteNote = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (id: string) => mockApi.deleteNote(id),
+    mutationFn: (id: string) => Promise.resolve(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
     },
