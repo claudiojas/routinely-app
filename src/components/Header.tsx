@@ -2,7 +2,8 @@
 import { Calendar, Settings, User, Menu, X, LogOut, User as UserIcon, Cog } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
-import { useAuth, useLogout } from '../hooks/useApi';
+import { useLogout } from '../hooks/useApi';
+import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
 
 const Header = () => {
@@ -12,7 +13,7 @@ const Header = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   
-  const { data: user } = useAuth();
+  const { user, logout } = useAuth();
   const logoutMutation = useLogout();
 
   // Fechar menu ao clicar fora
@@ -30,6 +31,7 @@ const Header = () => {
   const handleLogout = async () => {
     try {
       await logoutMutation.mutateAsync();
+      logout();
       toast.success('Logout realizado com sucesso!');
       setIsMobileMenuOpen(false);
       setIsUserMenuOpen(false);

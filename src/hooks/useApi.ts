@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth as useAuthContext } from '../contexts/AuthContext';
 
 // Tipos baseados na API real
 export interface User {
@@ -128,6 +129,7 @@ export const isAuthenticated = (): boolean => {
 
 export const useLogin = () => {
   const queryClient = useQueryClient();
+  const { login } = useAuthContext();
   
   return useMutation({
     mutationFn: async (data: LoginRequest) => {
@@ -143,8 +145,7 @@ export const useLogin = () => {
       return response.data!;
     },
     onSuccess: (response) => {
-      setAuthToken(response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      login(response.user, response.token);
       queryClient.setQueryData(['user'], response.user);
     },
   });
@@ -152,6 +153,7 @@ export const useLogin = () => {
 
 export const useSignUp = () => {
   const queryClient = useQueryClient();
+  const { login } = useAuthContext();
   
   return useMutation({
     mutationFn: async (data: CreateUserRequest) => {
@@ -167,8 +169,7 @@ export const useSignUp = () => {
       return response.data!;
     },
     onSuccess: (response) => {
-      setAuthToken(response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      login(response.user, response.token);
       queryClient.setQueryData(['user'], response.user);
     },
   });
@@ -306,14 +307,7 @@ export const useDaysOfWeek = () => {
 // ===== HOOKS DE UTILIDADE =====
 
 export const useAuth = () => {
-  return useQuery({
-    queryKey: ['auth'],
-    queryFn: () => {
-      const user = localStorage.getItem('user');
-      return user ? JSON.parse(user) : null;
-    },
-    enabled: isAuthenticated(),
-  });
+  return useAuthContext();
 };
 
 // ===== HOOKS COMPATIBILIDADE (para manter componentes existentes) =====

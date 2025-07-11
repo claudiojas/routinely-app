@@ -2,23 +2,36 @@ import React, { useState } from 'react';
 import { Calendar, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useLogin } from '../hooks/useApi';
+import { validateLogin } from '../utils/validation';
 import { toast } from 'sonner';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
+  const location = useLocation();
   
   const loginMutation = useLogin();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email.trim() || !password.trim()) {
-      toast.error('Por favor, preencha todos os campos');
+    // Validar formulário
+    const validationErrors = validateLogin({ email, password });
+    const errorMap: Record<string, string> = {};
+    
+    validationErrors.forEach(error => {
+      errorMap[error.field] = error.message;
+    });
+    
+    setErrors(errorMap);
+    
+    if (validationErrors.length > 0) {
+      toast.error('Por favor, corrija os erros no formulário');
       return;
     }
 
@@ -29,7 +42,10 @@ const Login = () => {
       });
       
       toast.success('Login realizado com sucesso!');
-      navigate('/');
+      
+      // Redirecionar para a rota original ou para home
+      const from = location.state?.from?.pathname || '/';
+      navigate(from, { replace: true });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro ao fazer login';
       toast.error(errorMessage);
@@ -81,9 +97,19 @@ const Login = () => {
                   type="email"
                   placeholder="Seu email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-12 h-12 bg-white/5 border border-white/10 text-white placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+                  }}
+                  className={`pl-12 h-12 bg-white/5 border text-white placeholder-gray-400 rounded-xl focus:ring-2 focus:outline-none ${
+                    errors.email 
+                      ? 'border-red-500 focus:ring-red-500' 
+                      : 'border-white/10 focus:ring-blue-500'
+                  }`}
                 />
+                {errors.email && (
+                  <p className="text-red-400 text-xs mt-1 ml-1">{errors.email}</p>
+                )}
               </div>
 
               {/* Senha */}
@@ -93,8 +119,15 @@ const Login = () => {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Sua senha"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-12 pr-12 h-12 bg-white/5 border border-white/10 text-white placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (errors.password) setErrors(prev => ({ ...prev, password: '' }));
+                  }}
+                  className={`pl-12 pr-12 h-12 bg-white/5 border text-white placeholder-gray-400 rounded-xl focus:ring-2 focus:outline-none ${
+                    errors.password 
+                      ? 'border-red-500 focus:ring-red-500' 
+                      : 'border-white/10 focus:ring-blue-500'
+                  }`}
                 />
                 <button
                   type="button"
@@ -103,6 +136,9 @@ const Login = () => {
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
+                {errors.password && (
+                  <p className="text-red-400 text-xs mt-1 ml-1">{errors.password}</p>
+                )}
               </div>
             </div>
 

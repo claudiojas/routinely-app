@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 import { useSignUp } from '../hooks/useApi';
+import { validateSignup } from '../utils/validation';
 import { toast } from 'sonner';
 
 const SignUp = () => {
@@ -11,6 +12,7 @@ const SignUp = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
   
   const signUpMutation = useSignUp();
@@ -18,13 +20,18 @@ const SignUp = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name.trim() || !email.trim() || !password.trim()) {
-      toast.error('Por favor, preencha todos os campos');
-      return;
-    }
-
-    if (password.length < 6) {
-      toast.error('A senha deve ter pelo menos 6 caracteres');
+    // Validar formulário
+    const validationErrors = validateSignup({ name, email, password });
+    const errorMap: Record<string, string> = {};
+    
+    validationErrors.forEach(error => {
+      errorMap[error.field] = error.message;
+    });
+    
+    setErrors(errorMap);
+    
+    if (validationErrors.length > 0) {
+      toast.error('Por favor, corrija os erros no formulário');
       return;
     }
 
@@ -35,8 +42,8 @@ const SignUp = () => {
         password,
       });
       
-      toast.success('Conta criada com sucesso!');
-      navigate('/');
+      toast.success('Conta criada com sucesso! Faça login para continuar.');
+      navigate('/login');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro ao criar conta';
       toast.error(errorMessage);
@@ -72,9 +79,19 @@ const SignUp = () => {
                   type="text"
                   placeholder="Seu nome"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="pl-12 h-12 bg-white/5 border border-white/10 text-white placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (errors.name) setErrors(prev => ({ ...prev, name: '' }));
+                  }}
+                  className={`pl-12 h-12 bg-white/5 border text-white placeholder-gray-400 rounded-xl focus:ring-2 focus:outline-none ${
+                    errors.name 
+                      ? 'border-red-500 focus:ring-red-500' 
+                      : 'border-white/10 focus:ring-blue-500'
+                  }`}
                 />
+                {errors.name && (
+                  <p className="text-red-400 text-xs mt-1 ml-1">{errors.name}</p>
+                )}
               </div>
 
               {/* Email */}
@@ -84,9 +101,19 @@ const SignUp = () => {
                   type="email"
                   placeholder="Seu email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-12 h-12 bg-white/5 border border-white/10 text-white placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+                  }}
+                  className={`pl-12 h-12 bg-white/5 border text-white placeholder-gray-400 rounded-xl focus:ring-2 focus:outline-none ${
+                    errors.email 
+                      ? 'border-red-500 focus:ring-red-500' 
+                      : 'border-white/10 focus:ring-blue-500'
+                  }`}
                 />
+                {errors.email && (
+                  <p className="text-red-400 text-xs mt-1 ml-1">{errors.email}</p>
+                )}
               </div>
 
               {/* Senha */}
@@ -96,8 +123,15 @@ const SignUp = () => {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Crie uma senha"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-12 pr-12 h-12 bg-white/5 border border-white/10 text-white placeholder-gray-400 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (errors.password) setErrors(prev => ({ ...prev, password: '' }));
+                  }}
+                  className={`pl-12 pr-12 h-12 bg-white/5 border text-white placeholder-gray-400 rounded-xl focus:ring-2 focus:outline-none ${
+                    errors.password 
+                      ? 'border-red-500 focus:ring-red-500' 
+                      : 'border-white/10 focus:ring-blue-500'
+                  }`}
                 />
                 <button
                   type="button"
@@ -106,6 +140,9 @@ const SignUp = () => {
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
+                {errors.password && (
+                  <p className="text-red-400 text-xs mt-1 ml-1">{errors.password}</p>
+                )}
               </div>
             </div>
 
