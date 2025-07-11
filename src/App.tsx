@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import SignUp from "./pages/SignUp";
 import WeeklyScheduleManager from "./pages/WeeklyScheduleManager";
+import UserProfile from "./components/UserProfile";
 import Layout from "./components/Layout";
 
 const App = () => (
@@ -38,6 +39,13 @@ const App = () => (
               <ProtectedRoute>
                 <Layout>
                   <WeeklyScheduleManager />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Layout>
+                  <UserProfile />
                 </Layout>
               </ProtectedRoute>
             } />

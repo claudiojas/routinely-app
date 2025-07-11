@@ -6,6 +6,14 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  avatar?: string;
+  preferences?: {
+    theme: 'light' | 'dark' | 'auto';
+    language: 'pt-BR' | 'en-US' | 'es';
+    notifications: boolean;
+    timezone?: string;
+    dateFormat?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -57,6 +65,32 @@ export interface ApiResponse<T> {
 export interface LoginResponse {
   user: User;
   token: string;
+}
+
+export interface UpdateProfileRequest {
+  name?: string;
+  avatar?: string;
+  preferences?: {
+    theme?: 'light' | 'dark' | 'auto';
+    language?: 'pt-BR' | 'en-US' | 'es';
+    notifications?: boolean;
+    timezone?: string;
+    dateFormat?: string;
+  };
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface UserStats {
+  totalActivities: number;
+  completedActivities: number;
+  pendingActivities: number;
+  streakDays: number;
+  totalHours: number;
+  favoriteActivityType: string;
 }
 
 // Configuração da API usando fetch nativo
@@ -308,6 +342,76 @@ export const useDaysOfWeek = () => {
 
 export const useAuth = () => {
   return useAuthContext();
+};
+
+// ===== HOOKS DE DADOS DO USUÁRIO =====
+
+export const useUserProfile = () => {
+  return useQuery({
+    queryKey: ['user-profile'],
+    queryFn: async () => {
+      const response = await apiRequest<User>('/user/profile');
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data!;
+    },
+    enabled: isAuthenticated(),
+  });
+};
+
+export const useUpdateProfile = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (data: UpdateProfileRequest) => {
+      const response = await apiRequest<User>('/user/profile', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      return response.data!;
+    },
+    onSuccess: (updatedUser) => {
+      queryClient.setQueryData(['user-profile'], updatedUser);
+      queryClient.setQueryData(['user'], updatedUser);
+    },
+  });
+};
+
+export const useChangePassword = () => {
+  return useMutation({
+    mutationFn: async (data: ChangePasswordRequest) => {
+      const response = await apiRequest<{ message: string }>('/user/password', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      return response.data!;
+    },
+  });
+};
+
+export const useUserStats = () => {
+  return useQuery({
+    queryKey: ['user-stats'],
+    queryFn: async () => {
+      const response = await apiRequest<UserStats>('/user/stats');
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      return response.data!;
+    },
+    enabled: isAuthenticated(),
+  });
 };
 
 // ===== HOOKS COMPATIBILIDADE (para manter componentes existentes) =====

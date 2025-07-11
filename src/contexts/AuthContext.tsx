@@ -8,6 +8,7 @@ interface AuthContextType {
   logout: () => void;
   loading: boolean;
   isAuthenticated: boolean;
+  refreshUser: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -54,13 +55,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('user');
   };
 
+  const refreshUser = (): void => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (error) {
+        console.error('Erro ao atualizar dados do usuário:', error);
+      }
+    }
+  };
+
   const value: AuthContextType = {
     user,
     token,
     login,
     logout,
     loading,
-    isAuthenticated: !!token
+    isAuthenticated: !!token,
+    refreshUser
   };
 
   return (

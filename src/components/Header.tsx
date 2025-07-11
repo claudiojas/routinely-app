@@ -91,15 +91,23 @@ const Header = () => {
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                 className="flex items-center space-x-2 p-2 text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-slate-800/50"
               >
-                <div className="w-8 h-8 bg-gradient-to-r from-violet-600 to-emerald-500 rounded-full flex items-center justify-center">
-                  {user ? (
-                    <span className="text-white text-sm font-medium">
-                      {user.name.charAt(0).toUpperCase()}
-                    </span>
-                  ) : (
-                    <UserIcon className="h-4 w-4 text-white" />
-                  )}
-                </div>
+                {user?.avatar ? (
+                  <img 
+                    src={user.avatar} 
+                    alt={user.name}
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-8 h-8 bg-gradient-to-r from-violet-600 to-emerald-500 rounded-full flex items-center justify-center">
+                    {user ? (
+                      <span className="text-white text-sm font-medium">
+                        {user.name.charAt(0).toUpperCase()}
+                      </span>
+                    ) : (
+                      <UserIcon className="h-4 w-4 text-white" />
+                    )}
+                  </div>
+                )}
               </button>
 
               {/* Dropdown Menu */}
@@ -108,15 +116,23 @@ const Header = () => {
                   {/* User Info */}
                   <div className="px-4 py-3 border-b border-slate-700/50">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-r from-violet-600 to-emerald-500 rounded-full flex items-center justify-center">
-                        {user ? (
-                          <span className="text-white font-medium">
-                            {user.name.charAt(0).toUpperCase()}
-                          </span>
-                        ) : (
-                          <UserIcon className="h-5 w-5 text-white" />
-                        )}
-                      </div>
+                      {user?.avatar ? (
+                        <img 
+                          src={user.avatar} 
+                          alt={user.name}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 bg-gradient-to-r from-violet-600 to-emerald-500 rounded-full flex items-center justify-center">
+                          {user ? (
+                            <span className="text-white font-medium">
+                              {user.name.charAt(0).toUpperCase()}
+                            </span>
+                          ) : (
+                            <UserIcon className="h-5 w-5 text-white" />
+                          )}
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <p className="text-white font-medium truncate">
                           {user?.name || 'Usuário'}
@@ -130,6 +146,14 @@ const Header = () => {
 
                   {/* Menu Items */}
                   <div className="py-1">
+                    <Link
+                      to="/profile"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="w-full flex items-center px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
+                    >
+                      <User className="h-4 w-4 mr-3" />
+                      Meu Perfil
+                    </Link>
                     <button className="w-full flex items-center px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors">
                       <Cog className="h-4 w-4 mr-3" />
                       Configurações
@@ -193,15 +217,23 @@ const Header = () => {
                 {/* User Info */}
                 <div className="px-4 py-3 mb-3">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-violet-600 to-emerald-500 rounded-full flex items-center justify-center">
-                      {user ? (
-                        <span className="text-white font-medium">
-                          {user.name.charAt(0).toUpperCase()}
-                        </span>
-                      ) : (
-                        <UserIcon className="h-5 w-5 text-white" />
-                      )}
-                    </div>
+                    {user?.avatar ? (
+                      <img 
+                        src={user.avatar} 
+                        alt={user.name}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-gradient-to-r from-violet-600 to-emerald-500 rounded-full flex items-center justify-center">
+                        {user ? (
+                          <span className="text-white font-medium">
+                            {user.name.charAt(0).toUpperCase()}
+                          </span>
+                        ) : (
+                          <UserIcon className="h-5 w-5 text-white" />
+                        )}
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <p className="text-white font-medium truncate">
                         {user?.name || 'Usuário'}
@@ -213,6 +245,14 @@ const Header = () => {
                   </div>
                 </div>
 
+                <Link
+                  to="/profile"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full flex items-center px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-lg transition-colors"
+                >
+                  <User className="h-5 w-5 mr-3" />
+                  Meu Perfil
+                </Link>
                 <button className="w-full flex items-center px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-lg transition-colors">
                   <Cog className="h-5 w-5 mr-3" />
                   Configurações
