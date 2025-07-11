@@ -3,17 +3,37 @@ import { Calendar, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
+import { useLogin } from '../hooks/useApi';
+import { toast } from 'sonner';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  
+  const loginMutation = useLogin();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Redireciona para a página de criar primeira tarefa
-    navigate('/');
+    
+    if (!email.trim() || !password.trim()) {
+      toast.error('Por favor, preencha todos os campos');
+      return;
+    }
+
+    try {
+      await loginMutation.mutateAsync({
+        email: email.trim().toLowerCase(),
+        password,
+      });
+      
+      toast.success('Login realizado com sucesso!');
+      navigate('/');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao fazer login';
+      toast.error(errorMessage);
+    }
   };
 
   return (
@@ -89,9 +109,17 @@ const Login = () => {
             {/* Botão */}
             <Button
               type="submit"
-              className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl text-white font-semibold transition-transform duration-300 hover:scale-105"
+              disabled={loginMutation.isPending}
+              className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl text-white font-semibold transition-transform duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Entrar na Routinely
+              {loginMutation.isPending ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Entrando...
+                </div>
+              ) : (
+                'Entrar na Routinely'
+              )}
             </Button>
           </form>
 

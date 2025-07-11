@@ -3,6 +3,8 @@ import { Calendar, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
+import { useSignUp } from '../hooks/useApi';
+import { toast } from 'sonner';
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -10,11 +12,35 @@ const SignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  
+  const signUpMutation = useSignUp();
 
-  const handleSignUp = (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Aqui você pode enviar os dados para o backend
-    navigate('/login');
+    
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      toast.error('Por favor, preencha todos os campos');
+      return;
+    }
+
+    if (password.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+
+    try {
+      await signUpMutation.mutateAsync({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        password,
+      });
+      
+      toast.success('Conta criada com sucesso!');
+      navigate('/');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao criar conta';
+      toast.error(errorMessage);
+    }
   };
 
   return (
@@ -86,9 +112,17 @@ const SignUp = () => {
             {/* Botão */}
             <Button
               type="submit"
-              className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl text-white font-semibold transition-transform duration-300 hover:scale-105"
+              disabled={signUpMutation.isPending}
+              className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl text-white font-semibold transition-transform duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Criar conta
+              {signUpMutation.isPending ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Criando conta...
+                </div>
+              ) : (
+                'Criar conta'
+              )}
             </Button>
           </form>
 
