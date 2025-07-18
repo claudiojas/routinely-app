@@ -76,11 +76,10 @@ routinely-app/
 
 #### 2. **Dashboard Principal**
 - Layout responsivo com grid system
-- Seletor de data com DatePicker
-- Lista de tarefas do dia selecionado
-- Barra de progresso semanal
-- Bloco de notas
-- Botão de sincronização Google Calendar
+- Exibe **apenas as tarefas do dia**, barra de progresso e bloco de notas
+- ❌ Não exibe mais DatePicker
+- ❌ Não exibe mais Google Calendar
+- **Status**: Atualizado para foco total em rotina diária
 
 #### 3. **Gerenciamento de Agenda Semanal**
 - Interface completa para criar/editar/excluir atividades
@@ -105,10 +104,8 @@ routinely-app/
 - Funcionalidade offline básica
 
 #### 6. **Integração Google Calendar**
-- Interface para sincronização
-- Simulação de conexão com Google APIs
-- Indicadores visuais de status de conexão
-- **Status**: UI implementada, integração real pendente
+- ❌ Removida do MVP
+- **Status**: Não faz parte do escopo atual
 
 ### 🔄 Funcionalidades em Desenvolvimento
 
@@ -121,11 +118,6 @@ routinely-app/
 - Cálculo de progresso semanal
 - Barra de progresso visual
 - **Status**: Implementado, pode ser melhorado
-
-#### 3. **Integração Google Calendar**
-- **OAuth Google funcionando**
-- Interface para sincronização
-- **Status**: ✅ Login OAuth implementado, sincronização de eventos pendente
 
 ## 🗄️ Gerenciamento de Estado
 
@@ -253,15 +245,17 @@ npm run lint         # Linting do código
 8. **Design responsivo**
 
 ### 🔄 Em Desenvolvimento
-1. **Integração real com Google Calendar API**
-2. **Sistema de autenticação completo**
-3. **Persistência de dados (localStorage/backend)**
-4. **Notificações push**
-5. **Sincronização offline**
+1. **Persistência de dados**
+2. **Banco de Dados** - Escolher e implementar (SQLite, PostgreSQL, etc.)
+3. **Deploy** - Configurar ambiente de produção
+4. **Testes** - Implementar testes unitários e E2E
+5. **Analytics** - Implementar tracking de uso
+6. **Notificações** - Sistema de lembretes
+7. **Export/Import** - Funcionalidade de backup
 
 ### 📋 Próximos Passos
 1. **Backend API** - Substituir mockApi por API real
-2. **Sincronização Google Calendar** - Implementar criação/listagem de eventos
+2. **Persistência de dados**
 3. **Banco de Dados** - Escolher e implementar (SQLite, PostgreSQL, etc.)
 4. **Deploy** - Configurar ambiente de produção
 5. **Testes** - Implementar testes unitários e E2E

@@ -1,8 +1,8 @@
 # 🚀 Status Atual do Desenvolvimento - Routinely
 
 **Última atualização:** Dezembro 2024  
-**Versão:** 0.1.0  
-**Status:** OAuth Google implementado e funcionando
+**Versão:** 0.1.1  
+**Status:** MVP focado em rotina diária, Google Calendar removido
 
 ---
 
@@ -15,25 +15,11 @@
 - ✅ **AuthContext integrado e funcionando**
 - ✅ **Redirecionamento automático após login**
 
-**Arquivos principais:**
-- `src/pages/AuthCallback.tsx` - Processa callback OAuth
-- `src/contexts/AuthContext.tsx` - Gerenciamento global de auth
-- `src/pages/Login.tsx` - Botão "Entrar com Google"
-
-**Como funciona:**
-1. Usuário clica em "Entrar com Google"
-2. Redireciona para Google OAuth
-3. Google retorna para `/auth/callback?token=JWT`
-4. Token é salvo no localStorage
-5. Dados do usuário extraídos do JWT
-6. Usuário autenticado e redirecionado para dashboard
-
-### 2. **Interface de Usuário Completa**
-- ✅ **Dashboard responsivo**
-- ✅ **Sistema de roteamento**
-- ✅ **Componentes shadcn/ui**
-- ✅ **Design system consistente**
-- ✅ **PWA configurado**
+### 2. **Interface de Usuário (Dashboard)**
+- ✅ **Exibe apenas as tarefas do dia, barra de progresso e bloco de notas**
+- ❌ **DatePicker removido da tela principal**
+- ❌ **Google Calendar removido do MVP**
+- ✅ **Acesso à agenda semanal via weekly-schedule-manager**
 
 ### 3. **Gerenciamento de Estado**
 - ✅ **Zustand store implementado**
@@ -51,18 +37,12 @@
 
 ## 🔄 **FUNCIONALIDADES EM DESENVOLVIMENTO**
 
-### 1. **Sincronização Google Calendar** (Próxima prioridade)
-- ⚠️ **OAuth funcionando, mas sincronização pendente**
-- ⚠️ **Criação de eventos no Google Calendar**
-- ⚠️ **Listagem de eventos existentes**
-- ⚠️ **Sincronização bidirecional**
-
-### 2. **Backend API**
+### 1. **Persistência de dados**
 - ⚠️ **Mock API atual**
 - ⚠️ **API real pendente**
-- ⚠️ **Persistência de dados**
+- ⚠️ **Banco de dados a definir**
 
-### 3. **Funcionalidades Avançadas**
+### 2. **Funcionalidades Avançadas**
 - ⚠️ **Notificações push**
 - ⚠️ **Export/import de dados**
 - ⚠️ **Analytics e métricas**
@@ -73,9 +53,7 @@
 
 ### **Servidor de Desenvolvimento**
 ```bash
-# Iniciar servidor
 npm run dev
-
 # URL: http://localhost:8080
 # Proxy: /api → http://localhost:3000
 ```
@@ -124,7 +102,6 @@ src/
 │   ├── Header.tsx             # Header com navegação
 │   ├── TaskList.tsx           # Lista de tarefas
 │   ├── WeeklySchedule.tsx     # Agenda semanal
-│   ├── GoogleSyncButton.tsx   # Sincronização Google
 │   └── ui/                    # Componentes shadcn/ui
 ├── pages/
 │   ├── Index.tsx              # Dashboard principal
@@ -147,14 +124,9 @@ src/
 
 ### **1. Setup Inicial**
 ```bash
-# Clonar repositório
 git clone <repository>
 cd routinely-app
-
-# Instalar dependências
 npm install
-
-# Iniciar servidor de desenvolvimento
 npm run dev
 ```
 
@@ -167,23 +139,13 @@ npm run dev
 ### **3. Próximos Passos Recomendados**
 
 #### **Prioridade Alta:**
-1. **Implementar sincronização Google Calendar**
-   - Usar tokens salvos do OAuth
-   - Criar eventos no Google Calendar
-   - Listar eventos existentes
-
+1. **Implementar persistência de dados real**
 2. **Desenvolver backend API**
-   - Substituir mockApi
-   - Implementar persistência
-   - Criar endpoints reais
+3. **Escolher e configurar banco de dados**
 
 #### **Prioridade Média:**
-3. **Melhorar UX/UI**
-   - Feedback visual de loading
-   - Tratamento de erros
-   - Animações suaves
-
-4. **Implementar funcionalidades avançadas**
+4. **Melhorar UX/UI**
+5. **Implementar funcionalidades avançadas**
    - Notificações push
    - Export/import
    - Analytics
@@ -218,9 +180,9 @@ git push             # Push para GitHub
 - ✅ **Redirecionamento funcionando**
 
 ### **Pendentes:**
-- ⚠️ **Sincronização Google Calendar**
+- ⚠️ **Persistência de dados real**
 - ⚠️ **Backend API real**
-- ⚠️ **Persistência de dados**
+- ⚠️ **Banco de dados**
 
 ---
 
@@ -241,7 +203,7 @@ git push             # Push para GitHub
 
 ## 🎯 **OBJETIVOS PARA PRÓXIMA SESSÃO**
 
-1. **Implementar sincronização Google Calendar**
+1. **Implementar persistência de dados real**
 2. **Desenvolver backend API básico**
 3. **Melhorar tratamento de erros**
 4. **Adicionar testes unitários**
@@ -249,4 +211,4 @@ git push             # Push para GitHub
 ---
 
 **Status:** ✅ **Projeto funcional e pronto para desenvolvimento**  
-**Próximo foco:** Sincronização Google Calendar + Backend API 
+**Próximo foco:** Persistência de dados + Backend API 
