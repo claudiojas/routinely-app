@@ -88,6 +88,7 @@ routinely-app/
 - Horários de início e fim
 - Sistema de anotações por atividade
 - Status de conclusão das tarefas
+- **Status:** Criação de atividades funcionando. Edição e deleção ainda não implementadas.
 
 #### 4. **Sistema de Tarefas**
 - Lista de tarefas do dia com status de conclusão
@@ -254,14 +255,15 @@ npm run lint         # Linting do código
 7. **Export/Import** - Funcionalidade de backup
 
 ### 📋 Próximos Passos
-1. **Backend API** - Substituir mockApi por API real
-2. **Persistência de dados**
-3. **Banco de Dados** - Escolher e implementar (SQLite, PostgreSQL, etc.)
-4. **Deploy** - Configurar ambiente de produção
-5. **Testes** - Implementar testes unitários e E2E
-6. **Analytics** - Implementar tracking de uso
-7. **Notificações** - Sistema de lembretes
-8. **Export/Import** - Funcionalidade de backup
+1. **Implementar edição de atividades semanais**
+2. **Implementar deleção de atividades semanais**
+3. **Persistência de dados**
+4. **Banco de Dados** - Escolher e implementar (SQLite, PostgreSQL, etc.)
+5. **Deploy** - Configurar ambiente de produção
+6. **Testes** - Implementar testes unitários e E2E
+7. **Analytics** - Implementar tracking de uso
+8. **Notificações** - Sistema de lembretes
+9. **Export/Import** - Funcionalidade de backup
 
 ## 🛠️ Configurações Técnicas
 

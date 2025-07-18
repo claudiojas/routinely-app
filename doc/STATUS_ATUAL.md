@@ -1,7 +1,7 @@
 # 🚀 Status Atual do Desenvolvimento - Routinely
 
-**Última atualização:** Dezembro 2024  
-**Versão:** 0.1.1  
+**Última atualização:** Julho 2024  
+**Versão:** 0.1.2  
 **Status:** MVP focado em rotina diária, Google Calendar removido
 
 ---
@@ -23,7 +23,7 @@
 
 ### 3. **Gerenciamento de Estado**
 - ✅ **Zustand store implementado**
-- ✅ **CRUD para agenda semanal**
+- ✅ **CRUD para agenda semanal (criação funcionando)**
 - ✅ **Sistema de tarefas**
 - ✅ **Notas e progresso**
 
@@ -46,6 +46,10 @@
 - ⚠️ **Notificações push**
 - ⚠️ **Export/import de dados**
 - ⚠️ **Analytics e métricas**
+
+### 3. **Edição e Deleção de Atividades**
+- ⚠️ **Edição de atividades semanais ainda não implementada**
+- ⚠️ **Deleção de atividades semanais ainda não implementada**
 
 ---
 
@@ -139,36 +143,18 @@ npm run dev
 ### **3. Próximos Passos Recomendados**
 
 #### **Prioridade Alta:**
-1. **Implementar persistência de dados real**
-2. **Desenvolver backend API**
-3. **Escolher e configurar banco de dados**
+1. **Implementar edição de atividades semanais**
+2. **Implementar deleção de atividades semanais**
+3. **Implementar persistência de dados real**
+4. **Desenvolver backend API**
+5. **Escolher e configurar banco de dados**
 
 #### **Prioridade Média:**
-4. **Melhorar UX/UI**
-5. **Implementar funcionalidades avançadas**
+6. **Melhorar UX/UI**
+7. **Implementar funcionalidades avançadas**
    - Notificações push
    - Export/import
    - Analytics
-
----
-
-## 🔧 **COMANDOS ÚTEIS**
-
-### **Desenvolvimento**
-```bash
-npm run dev          # Inicia servidor (porta 8080)
-npm run build        # Build para produção
-npm run preview      # Preview do build
-npm run lint         # Linting do código
-```
-
-### **Git**
-```bash
-git status           # Verificar mudanças
-git add .            # Adicionar mudanças
-git commit -m "msg"  # Commit
-git push             # Push para GitHub
-```
 
 ---
 
@@ -178,8 +164,11 @@ git push             # Push para GitHub
 - ✅ **OAuth Google funcionando**
 - ✅ **Autenticação integrada**
 - ✅ **Redirecionamento funcionando**
+- ✅ **Criação de atividades semanais funcionando**
 
 ### **Pendentes:**
+- ⚠️ **Edição de atividades semanais**
+- ⚠️ **Deleção de atividades semanais**
 - ⚠️ **Persistência de dados real**
 - ⚠️ **Backend API real**
 - ⚠️ **Banco de dados**
@@ -203,12 +192,14 @@ git push             # Push para GitHub
 
 ## 🎯 **OBJETIVOS PARA PRÓXIMA SESSÃO**
 
-1. **Implementar persistência de dados real**
-2. **Desenvolver backend API básico**
-3. **Melhorar tratamento de erros**
-4. **Adicionar testes unitários**
+1. **Implementar edição de atividades semanais**
+2. **Implementar deleção de atividades semanais**
+3. **Implementar persistência de dados real**
+4. **Desenvolver backend API básico**
+5. **Melhorar tratamento de erros**
+6. **Adicionar testes unitários**
 
 ---
 
 **Status:** ✅ **Projeto funcional e pronto para desenvolvimento**  
-**Próximo foco:** Persistência de dados + Backend API 
+**Próximo foco:** Edição e deleção de atividades semanais, persistência de dados 

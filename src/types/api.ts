@@ -1,4 +1,26 @@
 // Tipos base para APIs
+export type ActivityType = 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO';
+export type CreateActivityRequest = {
+  title: string;
+  description?: string;
+  type: ActivityType;
+  startTime: string;
+  endTime: string;
+  date: string; // formato YYYY-MM-DD
+};
+export type WeeklyScheduleItem = {
+  id: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  type: ActivityType;
+  completed?: boolean;
+  description?: string;
+  date: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+};
 export interface ApiResponse<T = unknown> {
   data: T
   message?: string
@@ -37,29 +59,14 @@ export interface AuthResponse {
   refreshToken: string
 }
 
-// Tipos para agenda semanal (já existentes, mas organizados)
-export interface WeeklyScheduleItem {
-  id: string
-  dayOfWeek: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'
-  startTime: string
-  endTime: string
-  activity: string
-  notes: string
-  type: 'study' | 'exercise' | 'work' | 'personal' | 'other'
-  isActive: boolean
-  completed?: boolean
-  userId: string
-  createdAt: string
-  updatedAt: string
-}
 
 export interface CreateWeeklyScheduleRequest {
-  dayOfWeek: WeeklyScheduleItem['dayOfWeek']
   startTime: string
   endTime: string
   activity: string
   notes: string
   type: WeeklyScheduleItem['type']
+  date: string // formato YYYY-MM-DD
   isActive?: boolean
 }
 
@@ -141,9 +148,9 @@ export interface TaskFilters extends PaginationParams {
 }
 
 export interface WeeklyScheduleFilters {
-  dayOfWeek?: WeeklyScheduleItem['dayOfWeek']
-  type?: WeeklyScheduleItem['type']
-  isActive?: boolean
+  date?: string;
+  type?: WeeklyScheduleItem['type'];
+  isActive?: boolean;
 }
 
 // Tipos para Google Calendar

@@ -11,7 +11,7 @@ Uma aplicação web moderna para organização de rotinas semanais, gerenciament
 ## ✨ Funcionalidades
 
 ### 🎯 Principais
-- **📅 Agenda Semanal**: Configure sua rotina semanal com atividades organizadas por dia
+- **📅 Agenda Semanal**: Configure sua rotina semanal com atividades organizadas por dia (criação funcionando, edição e deleção em desenvolvimento)
 - **✅ Gerenciamento de Tarefas**: Crie, edite e acompanhe tarefas diárias
 - **📝 Sistema de Notas**: Anotações rápidas para cada atividade
 - **📊 Progresso Visual**: Acompanhe seu progresso semanal
@@ -24,6 +24,7 @@ Uma aplicação web moderna para organização de rotinas semanais, gerenciament
 - 📱 Notificações push
 - 🔄 Sincronização offline
 - 📈 Analytics e métricas
+- ✏️ Edição e deleção de atividades semanais
 
 ## 🚀 Quick Start
 
@@ -160,10 +161,12 @@ Para informações detalhadas sobre o projeto, arquitetura e desenvolvimento:
 - [ ] Sincronização offline
 
 ### 📋 Próximos Passos
-1. **Backend API** - Substituir mockApi por API real
-2. **Autenticação** - Implementar JWT ou OAuth
-3. **Banco de Dados** - Escolher e implementar
-4. **Deploy** - Configurar ambiente de produção
+1. **Implementar edição de atividades semanais**
+2. **Implementar deleção de atividades semanais**
+3. **Backend API** - Substituir mockApi por API real
+4. **Persistência de dados**
+5. **Banco de Dados** - Escolher e implementar
+6. **Deploy** - Configurar ambiente de produção
 
 ## 🤝 Contribuindo
 

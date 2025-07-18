@@ -26,6 +26,7 @@ export interface Activity {
   type: 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO';
   startTime: string;
   endTime: string;
+  date: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -47,6 +48,7 @@ export interface CreateActivityRequest {
   type: 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO';
   startTime: string;
   endTime: string;
+  date: string; // formato YYYY-MM-DD
 }
 
 export interface UpdateActivityRequest {
@@ -460,6 +462,7 @@ export const useCreateTask = () => {
         type: task.type.toUpperCase() as 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO',
         startTime: '09:00', // Valores padrão
         endTime: '10:00',
+        date: new Date().toISOString().split('T')[0], // Adicionar data
       };
       return mutation.mutateAsync(activityData);
     },

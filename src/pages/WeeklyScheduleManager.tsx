@@ -1,20 +1,11 @@
 
 import React, { useState } from 'react';
-import { Plus, Calendar, Clock, Save, X, Edit, Trash2 } from 'lucide-react';
+import { Plus, Calendar, Save, X, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 // Tipo para compatibilidade
-type WeeklyScheduleItem = {
-  id: string;
-  activity: string;
-  startTime: string;
-  endTime: string;
-  type: string;
-  dayOfWeek: string;
-  completed?: boolean;
-  notes?: string;
-};
+
 import { 
   useActivities, 
   useCreateActivity, 
@@ -23,26 +14,31 @@ import {
   useDaysOfWeek,
   useActivityTypes
 } from '../hooks/useApi';
+import { ActivityType, CreateActivityRequest, WeeklyScheduleItem } from '../types/api';
+import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const WeeklyScheduleManager = () => {
   const { data: activities = [], isLoading: isLoadingSchedule } = useActivities();
-  const { data: daysOfWeek = [], isLoading: isLoadingDays } = useDaysOfWeek();
-  const { data: activityTypes = [], isLoading: isLoadingTypes } = useActivityTypes();
+  const { isLoading: isLoadingDays } = useDaysOfWeek();
+  const { isLoading: isLoadingTypes } = useActivityTypes();
   
   const createActivity = useCreateActivity();
   const updateActivity = useUpdateActivity();
   const deleteActivity = useDeleteActivity();
   
-  const [selectedDay, setSelectedDay] = useState<WeeklyScheduleItem['dayOfWeek']>('monday');
+  const getToday = () => format(new Date(), 'yyyy-MM-dd');
+  const [selectedDate, setSelectedDate] = useState(getToday());
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<WeeklyScheduleItem | null>(null);
   
-  const [formData, setFormData] = useState({
-    activity: '',
+  const [formData, setFormData] = useState<CreateActivityRequest>({
+    title: '',
     startTime: '',
     endTime: '',
-    notes: '',
-    type: 'personal' as WeeklyScheduleItem['type'],
+    type: 'PESSOAL',
+    description: '',
+    date: getToday(),
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,19 +49,21 @@ const WeeklyScheduleManager = () => {
         await updateActivity.mutateAsync({
           id: editingItem.id,
           data: {
-            title: formData.activity,
-            description: formData.notes,
-            type: formData.type.toUpperCase() as 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO',
+            title: formData.title,
+            description: formData.description,
+            type: formData.type,
           }
         });
       } else {
-        await createActivity.mutateAsync({
-          title: formData.activity,
-          description: formData.notes,
-          type: formData.type.toUpperCase() as 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO',
+        const payload = {
+          title: formData.title,
+          description: formData.description,
+          type: formData.type,
           startTime: formData.startTime,
           endTime: formData.endTime,
-        });
+          date: formData.date,
+        };
+        await createActivity.mutateAsync(payload);
       }
       
       resetForm();
@@ -77,13 +75,14 @@ const WeeklyScheduleManager = () => {
   const handleEdit = (item: WeeklyScheduleItem) => {
     setEditingItem(item);
     setFormData({
-      activity: item.activity,
+      title: item.title,
       startTime: item.startTime,
       endTime: item.endTime,
-      notes: item.notes,
+      description: item.description,
       type: item.type,
+      date: item.date,
     });
-    setSelectedDay(item.dayOfWeek);
+    setSelectedDate(item.date);
     setShowForm(true);
   };
 
@@ -99,42 +98,43 @@ const WeeklyScheduleManager = () => {
 
   const resetForm = () => {
     setFormData({
-      activity: '',
+      title: '',
       startTime: '',
       endTime: '',
-      notes: '',
-      type: 'personal',
+      description: '',
+      type: 'PESSOAL',
+      date: getToday(),
     });
     setEditingItem(null);
     setShowForm(false);
   };
 
-  // Converter atividades para o formato esperado
+  // Corrigir o mapeamento de atividades para usar o campo correto de dayOfWeek
   const weeklySchedule: WeeklyScheduleItem[] = activities.map(activity => ({
     id: activity.id,
-    activity: activity.title,
+    title: activity.title,
     startTime: activity.startTime || '09:00',
     endTime: activity.endTime || '10:00',
-    type: activity.type.toLowerCase(),
-    dayOfWeek: 'monday', // Simplificado por enquanto
-    notes: activity.description,
+    type: activity.type,
+    date: String(activity.date),
+    description: activity.description || '',
+    userId: activity.userId,
+    createdAt: String(activity.createdAt),
+    updatedAt: String(activity.updatedAt),
   }));
 
-  const getScheduleForDay = (day: WeeklyScheduleItem['dayOfWeek']) => {
+  const getScheduleForDate = (date: string) => {
     return weeklySchedule
-      .filter(item => item.dayOfWeek === day)
+      .filter(item => item.date === date)
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
   };
 
-  const getTypeColor = (type: WeeklyScheduleItem['type']) => {
-    const typeMap: Record<string, string> = {
-      'personal': 'bg-orange-500',
-      'work': 'bg-purple-500',
-      'study': 'bg-blue-500',
-      'health': 'bg-green-500',
-      'other': 'bg-gray-500',
-    };
-    return typeMap[type] || 'bg-gray-500';
+  const typeLabels: Record<ActivityType, string> = {
+    PESSOAL: '🏠 Pessoal',
+    TRABALHO: '📝 Trabalho',
+    ESTUDO: '📚 Estudo',
+    SAUDE: '💪 Saúde',
+    OUTRO: '📝 Outro',
   };
 
   const isLoading = isLoadingSchedule || isLoadingDays || isLoadingTypes;
@@ -146,6 +146,12 @@ const WeeklyScheduleManager = () => {
       </div>
     );
   }
+
+  // UI para selecionar a semana e o dia
+  const today = new Date();
+  const weekStart = startOfWeek(today, { weekStartsOn: 0 }); // Domingo
+  const weekDates = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  const currentYear = today.getFullYear();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -160,22 +166,30 @@ const WeeklyScheduleManager = () => {
           </p>
         </div>
 
+        {/* Ano no topo */}
+        <div className="text-center text-slate-400 text-lg mb-2">{currentYear}</div>
         {/* Day Selector */}
         <div className="mb-8">
           <div className="grid grid-cols-2 md:grid-cols-7 gap-2">
-            {daysOfWeek.map(day => (
-              <button
-                key={day.key}
-                onClick={() => setSelectedDay(day.key)}
-                className={`p-3 rounded-xl font-medium transition-all ${
-                  selectedDay === day.key
-                    ? 'bg-violet-600 text-white shadow-lg'
-                    : 'bg-slate-800/50 text-slate-300 hover:bg-slate-700/50'
-                }`}
-              >
-                {day.label}
-              </button>
-            ))}
+            {weekDates.map(dateObj => {
+              const dateStr = format(dateObj, 'yyyy-MM-dd');
+              return (
+                <button
+                  key={dateStr}
+                  onClick={() => setSelectedDate(dateStr)}
+                  className={`p-3 rounded-xl font-medium transition-all ${
+                    selectedDate === dateStr
+                      ? 'bg-violet-600 text-white shadow-lg'
+                      : 'bg-slate-800/50 text-slate-300 hover:bg-slate-700/50'
+                  }`}
+                >
+                  {format(dateObj, "EEE. dd/MM", { locale: ptBR })}
+                  {isSameDay(dateObj, today) && (
+                    <span className="ml-2 text-xs text-emerald-400">(hoje)</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -192,7 +206,7 @@ const WeeklyScheduleManager = () => {
 
         {/* Schedule List */}
         <div className="grid gap-4 mb-8">
-          {getScheduleForDay(selectedDay).map(item => (
+          {getScheduleForDate(selectedDate).map(item => (
             <div
               key={item.id}
               className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 border border-slate-700/50"
@@ -200,14 +214,14 @@ const WeeklyScheduleManager = () => {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className={`w-3 h-3 rounded-full ${getTypeColor(item.type)}`} />
+                    <div className={`w-3 h-3 rounded-full ${item.type === 'PESSOAL' ? 'bg-orange-500' : item.type === 'TRABALHO' ? 'bg-purple-500' : item.type === 'ESTUDO' ? 'bg-blue-500' : item.type === 'SAUDE' ? 'bg-green-500' : 'bg-gray-500'}`} />
                     <span className="text-sm text-slate-400">
                       {item.startTime} - {item.endTime}
                     </span>
                   </div>
-                  <h3 className="text-white font-medium mb-1">{item.activity}</h3>
-                  {item.notes && (
-                    <p className="text-slate-300 text-sm">{item.notes}</p>
+                  <h3 className="text-white font-medium mb-1">{item.title}</h3>
+                  {item.description && (
+                    <p className="text-slate-300 text-sm">{item.description}</p>
                   )}
                 </div>
                 <div className="flex gap-2">
@@ -232,7 +246,7 @@ const WeeklyScheduleManager = () => {
             </div>
           ))}
           
-          {getScheduleForDay(selectedDay).length === 0 && (
+          {getScheduleForDate(selectedDate).length === 0 && (
             <div className="text-center py-12 text-slate-400">
               <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>Nenhuma atividade cadastrada para este dia</p>
@@ -264,8 +278,8 @@ const WeeklyScheduleManager = () => {
                     Atividade
                   </label>
                   <Input
-                    value={formData.activity}
-                    onChange={(e) => setFormData({ ...formData, activity: e.target.value })}
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     placeholder="Ex: Exercício matinal"
                     className="bg-slate-700 border-slate-600 text-white"
                     required
@@ -305,12 +319,12 @@ const WeeklyScheduleManager = () => {
                   </label>
                   <select
                     value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value as WeeklyScheduleItem['type'] })}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value as ActivityType })}
                     className="w-full bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-white"
                   >
-                    {activityTypes.map(type => (
-                      <option key={type.value} value={type.value}>
-                        {type.label}
+                    {Object.entries(typeLabels).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
                       </option>
                     ))}
                   </select>
@@ -321,11 +335,24 @@ const WeeklyScheduleManager = () => {
                     Observações
                   </label>
                   <Textarea
-                    value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     placeholder="Detalhes sobre a atividade..."
                     className="bg-slate-700 border-slate-600 text-white"
                     rows={3}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Data
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.date}
+                    onChange={e => setFormData({ ...formData, date: e.target.value })}
+                    className="w-full bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-white"
+                    required
                   />
                 </div>
 
