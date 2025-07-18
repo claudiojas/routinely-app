@@ -71,7 +71,8 @@ routinely-app/
 - Páginas de Login e SignUp com design moderno
 - Formulários com validação visual
 - Navegação entre páginas de auth
-- **Status**: UI implementada, lógica de auth pendente
+- **OAuth Google implementado e funcionando**
+- **Status**: ✅ Autenticação OAuth Google 100% funcional
 
 #### 2. **Dashboard Principal**
 - Layout responsivo com grid system
@@ -120,6 +121,11 @@ routinely-app/
 - Cálculo de progresso semanal
 - Barra de progresso visual
 - **Status**: Implementado, pode ser melhorado
+
+#### 3. **Integração Google Calendar**
+- **OAuth Google funcionando**
+- Interface para sincronização
+- **Status**: ✅ Login OAuth implementado, sincronização de eventos pendente
 
 ## 🗄️ Gerenciamento de Estado
 
@@ -255,7 +261,7 @@ npm run lint         # Linting do código
 
 ### 📋 Próximos Passos
 1. **Backend API** - Substituir mockApi por API real
-2. **Autenticação** - Implementar JWT ou OAuth
+2. **Sincronização Google Calendar** - Implementar criação/listagem de eventos
 3. **Banco de Dados** - Escolher e implementar (SQLite, PostgreSQL, etc.)
 4. **Deploy** - Configurar ambiente de produção
 5. **Testes** - Implementar testes unitários e E2E
