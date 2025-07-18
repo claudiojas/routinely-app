@@ -14,6 +14,7 @@ import SignUp from "./pages/SignUp";
 import WeeklyScheduleManager from "./pages/WeeklyScheduleManager";
 import UserProfile from "./components/UserProfile";
 import Layout from "./components/Layout";
+import AuthCallback from "./pages/AuthCallback";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -26,6 +27,7 @@ const App = () => (
             {/* Rotas públicas */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             
             {/* Rotas protegidas */}
             <Route path="/" element={

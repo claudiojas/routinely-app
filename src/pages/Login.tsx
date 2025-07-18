@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useLogin } from '../hooks/useApi';
 import { validateLogin } from '../utils/validation';
 import { toast } from 'sonner';
+import { FcGoogle } from 'react-icons/fc';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -89,6 +90,23 @@ const Login = () => {
 
           {/* Form */}
           <form onSubmit={handleLogin} className="space-y-6">
+            {/* Botão Entrar com Google */}
+            <button
+              type="button"
+              onClick={() => {
+                window.location.href = '/api/auth/google';
+              }}
+              className="w-full flex items-center justify-center gap-3 h-12 mb-4 bg-white text-gray-800 border border-gray-200 rounded-xl font-semibold shadow hover:bg-gray-50 transition-colors"
+            >
+              <FcGoogle className="h-6 w-6" />
+              Entrar com Google
+            </button>
+            <div className="flex items-center my-2">
+              <span className="flex-1 h-px bg-gray-300" />
+              <span className="px-2 text-xs text-gray-400">ou</span>
+              <span className="flex-1 h-px bg-gray-300" />
+            </div>
+            {/* Email */}
             <div className="space-y-4">
               {/* Email */}
               <div className="relative">
