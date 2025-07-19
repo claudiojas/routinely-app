@@ -1,12 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Calendar, Save, X, Edit, Trash2 } from 'lucide-react';
+import { Plus, Calendar, Save, X, Edit, Trash2, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { EditActivityDialog } from '@/components/EditActivityDialog';
 import { useToast } from '@/components/ui/use-toast';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import FinalizeWeekDialog from '@/components/FinalizeWeekDialog';
+import { useWeekManagement } from '@/hooks/useWeekManagement';
 // Tipo para compatibilidade
 
 import { 
@@ -32,6 +34,16 @@ const WeeklyScheduleManager = () => {
   const updateActivity = useUpdateActivity();
   const deleteActivity = useDeleteActivity();
   
+  // Sistema de gerenciamento de semanas
+  const {
+    weeks,
+    activeWeek,
+    completedWeeks,
+    shouldShowFinalizeButton,
+    finalizeCurrentWeek,
+    getWeekDays,
+  } = useWeekManagement();
+  
   const getToday = () => format(new Date(), 'yyyy-MM-dd');
   const [selectedDate, setSelectedDate] = useState(getToday());
   const [showForm, setShowForm] = useState(false);
@@ -47,6 +59,7 @@ const WeeklyScheduleManager = () => {
     activityId: '',
     activityName: '',
   });
+  const [finalizeDialog, setFinalizeDialog] = useState(false);
   
   const [formData, setFormData] = useState<CreateActivityRequest>({
     title: '',
@@ -163,6 +176,20 @@ const WeeklyScheduleManager = () => {
     }
   };
 
+  const handleFinalizeWeek = () => {
+    setFinalizeDialog(true);
+  };
+
+  const confirmFinalizeWeek = () => {
+    finalizeCurrentWeek();
+    setFinalizeDialog(false);
+    
+    toast({
+      title: '✅ Semana finalizada!',
+      description: 'Nova semana de planejamento iniciada com sucesso.',
+    });
+  };
+
   const resetForm = () => {
     setFormData({
       title: '',
@@ -214,12 +241,6 @@ const WeeklyScheduleManager = () => {
     );
   }
 
-  // UI para selecionar a semana e o dia
-  const today = new Date();
-  const weekStart = startOfWeek(today, { weekStartsOn: 0 }); // Domingo
-  const weekDates = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-  const currentYear = today.getFullYear();
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -233,31 +254,86 @@ const WeeklyScheduleManager = () => {
           </p>
         </div>
 
-        {/* Ano no topo */}
-        <div className="text-center text-slate-400 text-lg mb-2">{currentYear}</div>
-        {/* Day Selector */}
-        <div className="mb-8">
-          <div className="grid grid-cols-2 md:grid-cols-7 gap-2">
-            {weekDates.map(dateObj => {
-              const dateStr = format(dateObj, 'yyyy-MM-dd');
-              return (
-                <button
-                  key={dateStr}
-                  onClick={() => setSelectedDate(dateStr)}
-                  className={`p-3 rounded-xl font-medium transition-all ${
-                    selectedDate === dateStr
-                      ? 'bg-violet-600 text-white shadow-lg'
-                      : 'bg-slate-800/50 text-slate-300 hover:bg-slate-700/50'
-                  }`}
-                >
-                  {format(dateObj, "EEE. dd/MM", { locale: ptBR })}
-                  {isSameDay(dateObj, today) && (
-                    <span className="ml-2 text-xs text-emerald-400">(hoje)</span>
-                  )}
-                </button>
-              );
-            })}
+        {/* Botão Finalizar Semana */}
+        {shouldShowFinalizeButton && (
+          <div className="mb-6 text-center">
+            <Button
+              onClick={handleFinalizeWeek}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Finalizar Semana
+            </Button>
           </div>
+        )}
+
+        {/* Semanas */}
+        <div className="space-y-6">
+          {/* Semana Ativa */}
+          {activeWeek && (
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700/50">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-white">
+                  Semana Ativa
+                </h2>
+                <span className="text-sm text-slate-400">
+                  {format(activeWeek.startDate, 'dd/MM', { locale: ptBR })} - {format(activeWeek.endDate, 'dd/MM', { locale: ptBR })}
+                </span>
+              </div>
+              
+              {/* Day Selector */}
+              <div className="grid grid-cols-2 md:grid-cols-7 gap-2 mb-6">
+                {getWeekDays(activeWeek).map(day => {
+                  const dateStr = format(day.date, 'yyyy-MM-dd');
+                  return (
+                    <button
+                      key={dateStr}
+                      onClick={() => setSelectedDate(dateStr)}
+                      className={`p-3 rounded-xl font-medium transition-all ${
+                        selectedDate === dateStr
+                          ? 'bg-violet-600 text-white shadow-lg'
+                          : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50'
+                      }`}
+                    >
+                      {day.dayOfWeek}. {format(day.date, 'dd/MM', { locale: ptBR })}
+                      {day.isToday && (
+                        <span className="ml-2 text-xs text-emerald-400">(hoje)</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Semanas Finalizadas */}
+          {completedWeeks.map((week, index) => (
+            <div key={week.id} className="bg-slate-800/30 backdrop-blur-sm rounded-xl p-6 border border-slate-700/30 opacity-60">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-slate-300">
+                  Semana Finalizada
+                </h3>
+                <span className="text-sm text-slate-500">
+                  {format(week.startDate, 'dd/MM', { locale: ptBR })} - {format(week.endDate, 'dd/MM', { locale: ptBR })}
+                </span>
+              </div>
+              
+              {/* Day Selector (somente visualização) */}
+              <div className="grid grid-cols-2 md:grid-cols-7 gap-2">
+                {getWeekDays(week).map(day => {
+                  const dateStr = format(day.date, 'yyyy-MM-dd');
+                  return (
+                    <div
+                      key={dateStr}
+                      className="p-3 rounded-xl font-medium text-slate-500 bg-slate-700/30"
+                    >
+                      {day.dayOfWeek}. {format(day.date, 'dd/MM', { locale: ptBR })}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Add Button */}
@@ -469,6 +545,16 @@ const WeeklyScheduleManager = () => {
         title="Excluir Atividade"
         description={`Tem certeza que deseja excluir "${deleteDialog.activityName}"?`}
         isLoading={deleteActivity.isPending}
+      />
+
+      {/* Dialog de Finalização de Semana */}
+      <FinalizeWeekDialog
+        isOpen={finalizeDialog}
+        onClose={() => setFinalizeDialog(false)}
+        onConfirm={confirmFinalizeWeek}
+        currentWeekEnd={activeWeek?.endDate || new Date()}
+        nextWeekStart={activeWeek ? new Date(activeWeek.endDate.getTime() + 24 * 60 * 60 * 1000) : new Date()}
+        isLoading={false}
       />
     </div>
   );
