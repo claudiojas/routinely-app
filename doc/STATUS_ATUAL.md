@@ -24,6 +24,8 @@
 
 ### 3. **Interface de Usuário (Dashboard)**
 - ✅ **Exibe apenas as tarefas do dia, barra de progresso e bloco de notas**
+- ✅ **Tarefas independentes removidas da página inicial**
+- ✅ **Funcionalidade de edição integrada nas tarefas do dia**
 - ❌ **DatePicker removido da tela principal**
 - ❌ **Google Calendar removido do MVP**
 - ✅ **Acesso à agenda semanal via weekly-schedule-manager**
@@ -125,11 +127,12 @@ src/
 src/
 ├── components/
 │   ├── Header.tsx             # Header com navegação
-│   ├── TaskList.tsx           # Lista de tarefas
+│   ├── TaskList.tsx           # Lista de tarefas do dia (com edição)
+│   ├── EditActivityDialog.tsx # Dialog de edição de atividades
 │   ├── WeeklySchedule.tsx     # Agenda semanal
 │   └── ui/                    # Componentes shadcn/ui
 ├── pages/
-│   ├── Index.tsx              # Dashboard principal
+│   ├── Index.tsx              # Dashboard principal (simplificado)
 │   └── WeeklyScheduleManager.tsx
 └── store/
     └── useStore.ts            # Zustand store
@@ -161,6 +164,7 @@ npm run dev
 3. **Verificar autenticação:** Deve redirecionar para dashboard
 4. **Testar funcionalidades:** Agenda, tarefas, notas
 5. **Testar criação de atividades:** Deve funcionar com backend real
+6. **Testar edição de tarefas:** Clique no ícone de edição nas tarefas do dia
 
 ### **3. Próximos Passos Recomendados**
 
@@ -187,6 +191,8 @@ npm run dev
 - ✅ **Redirecionamento funcionando**
 - ✅ **Backend API real funcionando**
 - ✅ **Criação de atividades semanais funcionando**
+- ✅ **Edição de atividades funcionando**
+- ✅ **Interface simplificada (apenas tarefas do dia)**
 - ✅ **Banco de dados PostgreSQL configurado**
 
 ### **Pendentes:**

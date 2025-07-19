@@ -1,6 +1,5 @@
 
 import TaskList from '../components/TaskList';
-import TaskManager from '../components/TaskManager';
 import NotePad from '../components/NotePad';
 import ProgressBar from '../components/ProgressBar';
 import InstallPWA from '../components/InstallPWA';
@@ -15,7 +14,6 @@ const Index = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             <TaskList />
-            <TaskManager />
           </div>
           
           {/* Sidebar */}

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Check, Trash2, StickyNote } from 'lucide-react';
+import { Check, Trash2, Edit } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { 
   useActivities, 
@@ -8,6 +8,7 @@ import {
   useDeleteActivity 
 } from '../hooks/useApi';
 import { Activity } from '../hooks/useApi';
+import { EditActivityDialog } from './EditActivityDialog';
 
 // Tipo para compatibilidade com o componente existente
 type WeeklyScheduleItem = {
@@ -26,9 +27,8 @@ const TaskList = () => {
   const updateActivity = useUpdateActivity();
   const deleteActivity = useDeleteActivity();
   
-  const [showNoteModal, setShowNoteModal] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<WeeklyScheduleItem | null>(null);
-  const [noteText, setNoteText] = useState('');
+  const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   // Converter atividades para o formato esperado pelo componente
   const weeklySchedule: WeeklyScheduleItem[] = activities.map(activity => ({
@@ -78,25 +78,12 @@ const TaskList = () => {
     }
   };
 
-  const handleAddNote = (task: WeeklyScheduleItem) => {
-    setSelectedTask(task);
-    setNoteText(task.notes || '');
-    setShowNoteModal(true);
-  };
-
-  const handleSaveNote = async () => {
-    if (selectedTask) {
-      try {
-        await updateActivity.mutateAsync({
-          id: selectedTask.id,
-          data: { description: noteText }
-        });
-        setShowNoteModal(false);
-        setSelectedTask(null);
-        setNoteText('');
-      } catch (error) {
-        console.error('Erro ao salvar anotação:', error);
-      }
+  const handleEdit = (task: WeeklyScheduleItem) => {
+    // Encontrar a atividade correspondente
+    const activity = activities.find(a => a.id === task.id);
+    if (activity) {
+      setEditingActivity(activity);
+      setShowEditDialog(true);
     }
   };
 
@@ -114,6 +101,7 @@ const TaskList = () => {
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-gray-900">Tarefas do Dia</h2>
+        <p className="text-sm text-gray-500">Clique no ícone de edição para modificar as tarefas</p>
       </div>
 
       <div className="space-y-3">
@@ -170,11 +158,11 @@ const TaskList = () => {
 
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={() => handleAddNote(item)}
+                    onClick={() => handleEdit(item)}
                     className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
-                    title="Adicionar anotação"
+                    title="Editar tarefa"
                   >
-                    <StickyNote className="h-4 w-4" />
+                    <Edit className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(item.id)}
@@ -190,48 +178,15 @@ const TaskList = () => {
         )}
       </div>
 
-      {/* Modal de Anotação */}
-      {showNoteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">
-              Adicionar Anotação
-            </h3>
-            <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">
-                {selectedTask?.activity}
-              </p>
-              <textarea
-                value={noteText}
-                onChange={(e) => setNoteText(e.target.value)}
-                placeholder="Digite sua anotação aqui..."
-                rows={4}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            
-            <div className="flex space-x-3">
-                              <button
-                  onClick={handleSaveNote}
-                  disabled={updateActivity.isPending}
-                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {updateActivity.isPending ? 'Salvando...' : 'Salvar'}
-                </button>
-              <button
-                onClick={() => {
-                  setShowNoteModal(false);
-                  setSelectedTask(null);
-                  setNoteText('');
-                }}
-                className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Dialog de Edição */}
+      <EditActivityDialog
+        activity={editingActivity}
+        isOpen={showEditDialog}
+        onClose={() => {
+          setShowEditDialog(false);
+          setEditingActivity(null);
+        }}
+      />
     </div>
   );
 };
