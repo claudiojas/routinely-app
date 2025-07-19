@@ -68,6 +68,16 @@ const Header = () => {
               Agenda Semanal
             </Link>
             <Link
+              to="/completed-weeks"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                location.pathname === '/completed-weeks'
+                  ? 'bg-violet-600/20 text-violet-300 border border-violet-600/30'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
+              }`}
+            >
+              Semanas Finalizadas
+            </Link>
+            <Link
               to="/dashboard"
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 location.pathname === '/dashboard'
@@ -199,6 +209,17 @@ const Header = () => {
                 }`}
               >
                 Agenda Semanal
+              </Link>
+              <Link
+                to="/completed-weeks"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                  location.pathname === '/completed-weeks'
+                    ? 'bg-violet-600/20 text-violet-300 border border-violet-600/30'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
+                }`}
+              >
+                Semanas Finalizadas
               </Link>
               <Link
                 to="/dashboard"

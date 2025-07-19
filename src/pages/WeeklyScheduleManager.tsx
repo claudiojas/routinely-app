@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Plus, Calendar, Save, X, Edit, Trash2, CheckCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -38,7 +39,6 @@ const WeeklyScheduleManager = () => {
   const {
     weeks,
     activeWeek,
-    completedWeeks,
     shouldShowFinalizeButton,
     finalizeCurrentWeek,
     getWeekDays,
@@ -271,6 +271,16 @@ const WeeklyScheduleManager = () => {
             <Plus className="w-4 h-4 mr-2" />
             Adicionar Atividade
           </Button>
+
+          <Link to="/completed-weeks">
+            <Button
+              variant="outline"
+              className="border-slate-600 text-slate-300 hover:bg-slate-700"
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Ver Semanas Finalizadas
+            </Button>
+          </Link>
         </div>
 
         {/* Semanas */}
@@ -312,34 +322,7 @@ const WeeklyScheduleManager = () => {
             </div>
           )}
 
-          {/* Semanas Finalizadas */}
-          {completedWeeks.map((week, index) => (
-            <div key={week.id} className="bg-slate-800/30 backdrop-blur-sm rounded-xl p-6 border border-slate-700/30 opacity-60">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-slate-300">
-                  Semana Finalizada
-                </h3>
-                <span className="text-sm text-slate-500">
-                  {format(week.startDate, 'dd/MM', { locale: ptBR })} - {format(week.endDate, 'dd/MM', { locale: ptBR })}
-                </span>
-              </div>
-              
-              {/* Day Selector (somente visualização) */}
-              <div className="grid grid-cols-2 md:grid-cols-7 gap-2">
-                {getWeekDays(week).map(day => {
-                  const dateStr = format(day.date, 'yyyy-MM-dd');
-                  return (
-                    <div
-                      key={dateStr}
-                      className="p-3 rounded-xl font-medium text-slate-500 bg-slate-700/30"
-                    >
-                      {day.dayOfWeek}. {format(day.date, 'dd/MM', { locale: ptBR })}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+
         </div>
 
 
