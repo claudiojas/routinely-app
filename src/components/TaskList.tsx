@@ -97,7 +97,7 @@ const TaskList = () => {
   };
 
   const confirmDelete = async () => {
-    try {
+      try {
       await deleteActivity.mutateAsync(deleteDialog.activityId);
       
       toast({
@@ -106,8 +106,8 @@ const TaskList = () => {
       });
       
       setDeleteDialog({ isOpen: false, activityId: '', activityName: '' });
-    } catch (error) {
-      console.error('Erro ao excluir tarefa:', error);
+      } catch (error) {
+        console.error('Erro ao excluir tarefa:', error);
       
       toast({
         title: '❌ Erro ao excluir tarefa',

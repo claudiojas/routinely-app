@@ -40,7 +40,9 @@ const WeeklyScheduleManager = () => {
     weeks,
     activeWeek,
     shouldShowFinalizeButton,
+    canStartNewWeek,
     finalizeCurrentWeek,
+    startNewWeek,
     getWeekDays,
   } = useWeekManagement();
   
@@ -154,7 +156,7 @@ const WeeklyScheduleManager = () => {
   };
 
   const confirmDelete = async () => {
-    try {
+      try {
       await deleteActivity.mutateAsync(deleteDialog.activityId);
       
       toast({
@@ -163,8 +165,8 @@ const WeeklyScheduleManager = () => {
       });
       
       setDeleteDialog({ isOpen: false, activityId: '', activityName: '' });
-    } catch (error) {
-      console.error('Erro ao deletar item:', error);
+      } catch (error) {
+        console.error('Erro ao deletar item:', error);
       
       toast({
         title: '❌ Erro ao excluir atividade',
@@ -186,7 +188,16 @@ const WeeklyScheduleManager = () => {
     
     toast({
       title: '✅ Semana finalizada!',
-      description: 'Nova semana de planejamento iniciada com sucesso.',
+      description: 'A semana foi enviada para a página de semanas finalizadas.',
+    });
+  };
+
+  const handleStartNewWeek = () => {
+    startNewWeek();
+    
+    toast({
+      title: '✅ Nova semana iniciada!',
+      description: 'Uma nova semana foi adicionada à sua agenda.',
     });
   };
 
@@ -255,7 +266,7 @@ const WeeklyScheduleManager = () => {
         </div>
 
         {/* Botões de Ação */}
-        <div className="mb-6 flex justify-center gap-4">
+        <div className="mb-6 flex justify-center gap-4 flex-wrap">
           <Button
             onClick={handleFinalizeWeek}
             className="bg-emerald-600 hover:bg-emerald-700 text-white"
@@ -263,6 +274,16 @@ const WeeklyScheduleManager = () => {
             <CheckCircle className="w-4 h-4 mr-2" />
             Finalizar Semana
           </Button>
+          
+          {canStartNewWeek && (
+            <Button
+              onClick={handleStartNewWeek}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Iniciar Nova Semana
+            </Button>
+          )}
           
           <Button
             onClick={() => setShowForm(true)}
@@ -285,21 +306,21 @@ const WeeklyScheduleManager = () => {
 
         {/* Semanas */}
         <div className="space-y-6">
-          {/* Semana Ativa */}
-          {activeWeek && (
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700/50">
+          {/* Todas as semanas não-finalizadas */}
+          {weeks.filter(week => !week.isCompleted).map((week, index) => (
+            <div key={week.id} className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700/50">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-white">
-                  Semana Ativa
+                  {week.isActive ? 'Semana Ativa' : `Semana ${week.weekNumber}`}
                 </h2>
                 <span className="text-sm text-slate-400">
-                  {format(activeWeek.startDate, 'dd/MM', { locale: ptBR })} - {format(activeWeek.endDate, 'dd/MM', { locale: ptBR })}
+                  {format(week.startDate, 'dd/MM', { locale: ptBR })} - {format(week.endDate, 'dd/MM', { locale: ptBR })}
                 </span>
               </div>
               
               {/* Day Selector */}
               <div className="grid grid-cols-2 md:grid-cols-7 gap-2 mb-6">
-                {getWeekDays(activeWeek).map(day => {
+                {getWeekDays(week).map(day => {
                   const dateStr = format(day.date, 'yyyy-MM-dd');
                   return (
                     <button
@@ -320,9 +341,7 @@ const WeeklyScheduleManager = () => {
                 })}
               </div>
             </div>
-          )}
-
-
+          ))}
         </div>
 
 
