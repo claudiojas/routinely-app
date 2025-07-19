@@ -19,6 +19,7 @@ type WeeklyScheduleItem = {
   type: string;
   completed?: boolean;
   notes?: string;
+  date: string;
 };
 
 const TaskList = () => {
@@ -39,9 +40,16 @@ const TaskList = () => {
     type: activity.type.toLowerCase(),
     completed: false, // A API real não tem campo completed
     notes: activity.description,
+    date: activity.date, // Adicionar data para filtrar
   }));
 
-  const todayScheduleItems = weeklySchedule; // Simplificado por enquanto
+  // Filtrar apenas as atividades do dia selecionado
+  const todayScheduleItems = weeklySchedule.filter(item => item.date === selectedDate);
+  
+  // Debug: verificar se o filtro está funcionando
+  console.log('selectedDate:', selectedDate);
+  console.log('total activities:', activities.length);
+  console.log('filtered activities:', todayScheduleItems.length);
 
   const typeLabels = {
     study: 'Estudo',

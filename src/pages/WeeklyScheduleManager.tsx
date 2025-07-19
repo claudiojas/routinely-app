@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Calendar, Save, X, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,8 +42,16 @@ const WeeklyScheduleManager = () => {
     endTime: '',
     type: 'PESSOAL',
     description: '',
-    date: getToday(),
+    date: selectedDate,
   });
+
+  // Sincronizar a data do formulário com a data selecionada
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      date: selectedDate,
+    }));
+  }, [selectedDate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,7 +121,7 @@ const WeeklyScheduleManager = () => {
       endTime: '',
       description: '',
       type: 'PESSOAL',
-      date: getToday(),
+      date: selectedDate,
     });
     setEditingItem(null);
     setShowForm(false);

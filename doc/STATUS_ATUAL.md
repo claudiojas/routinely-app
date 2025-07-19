@@ -165,6 +165,8 @@ npm run dev
 4. **Testar funcionalidades:** Agenda, tarefas, notas
 5. **Testar criação de atividades:** Deve funcionar com backend real
 6. **Testar edição de tarefas:** Clique no ícone de edição nas tarefas do dia
+7. **Testar sincronização de data:** Selecione dia diferente na agenda semanal e crie atividade
+8. **Testar filtro de tarefas:** Página inicial deve mostrar apenas tarefas do dia atual
 
 ### **3. Próximos Passos Recomendados**
 
@@ -193,12 +195,15 @@ npm run dev
 - ✅ **Criação de atividades semanais funcionando**
 - ✅ **Edição de atividades funcionando**
 - ✅ **Interface simplificada (apenas tarefas do dia)**
+- ✅ **Sincronização de data corrigida (agenda semanal)**
+- ✅ **Filtro de tarefas por data corrigido (página inicial)**
 - ✅ **Banco de dados PostgreSQL configurado**
 
 ### **Pendentes:**
 - ⚠️ **Deleção de atividades semanais**
 - ⚠️ **Melhorar tratamento de erros**
 - ⚠️ **Adicionar validação de dados**
+- ⚠️ **Remover logs de debug** (após confirmar funcionamento)
 
 ---
 
