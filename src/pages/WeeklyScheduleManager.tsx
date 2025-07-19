@@ -254,18 +254,24 @@ const WeeklyScheduleManager = () => {
           </p>
         </div>
 
-        {/* Botão Finalizar Semana */}
-        {shouldShowFinalizeButton && (
-          <div className="mb-6 text-center">
-            <Button
-              onClick={handleFinalizeWeek}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
-            >
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Finalizar Semana
-            </Button>
-          </div>
-        )}
+        {/* Botões de Ação */}
+        <div className="mb-6 flex justify-center gap-4">
+          <Button
+            onClick={handleFinalizeWeek}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+          >
+            <CheckCircle className="w-4 h-4 mr-2" />
+            Finalizar Semana
+          </Button>
+          
+          <Button
+            onClick={() => setShowForm(true)}
+            className="bg-violet-600 hover:bg-violet-700 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Adicionar Atividade
+          </Button>
+        </div>
 
         {/* Semanas */}
         <div className="space-y-6">
@@ -336,16 +342,7 @@ const WeeklyScheduleManager = () => {
           ))}
         </div>
 
-        {/* Add Button */}
-        <div className="mb-6">
-          <Button
-            onClick={() => setShowForm(true)}
-            className="bg-violet-600 hover:bg-violet-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Adicionar Atividade
-          </Button>
-        </div>
+
 
         {/* Schedule List */}
         <div className="grid gap-4 mb-8">
