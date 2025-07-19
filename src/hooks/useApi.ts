@@ -107,9 +107,13 @@ async function apiRequest<T>(
   try {
     const token = localStorage.getItem('auth_token');
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
       ...(options.headers as Record<string, string>),
     };
+
+    // Só adicionar Content-Type se não for DELETE
+    if (options.method !== 'DELETE') {
+      headers['Content-Type'] = 'application/json';
+    }
 
     if (token) {
       headers.Authorization = `Bearer ${token}`;
@@ -480,6 +484,7 @@ export const useUpdateTask = () => {
         title: updates.title,
         description: updates.description,
         type: updates.type?.toUpperCase() as 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO' | undefined,
+        date: new Date().toISOString().split('T')[0], // Adicionar data atual
       };
       return mutation.mutateAsync({ id, data: activityData });
     },

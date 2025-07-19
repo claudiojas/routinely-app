@@ -1,8 +1,8 @@
 # 🚀 Status Atual do Desenvolvimento - Routinely
 
 **Última atualização:** Julho 2024  
-**Versão:** 0.1.2  
-**Status:** MVP focado em rotina diária, API real funcionando
+**Versão:** 0.1.3  
+**Status:** MVP completo com CRUD total e feedback visual
 
 ---
 
@@ -20,9 +20,29 @@
 - ✅ **Prisma ORM com PostgreSQL**
 - ✅ **API REST completa implementada**
 - ✅ **Endpoints de autenticação funcionando**
-- ✅ **CRUD de atividades (criação funcionando)**
+- ✅ **CRUD completo de atividades funcionando**
 
-### 3. **Interface de Usuário (Dashboard)**
+### 3. **CRUD Completo de Atividades** 🎉
+- ✅ **Criação de atividades funcionando**
+- ✅ **Leitura de atividades funcionando**
+- ✅ **Edição de atividades funcionando**
+- ✅ **Deleção de atividades funcionando**
+- ✅ **Filtro por data funcionando**
+
+### 4. **Sistema de Feedback Visual** 🎉
+- ✅ **Toast notifications implementadas**
+- ✅ **Dialog de confirmação elegante para deleção**
+- ✅ **Loading states durante operações**
+- ✅ **Feedback de sucesso e erro**
+- ✅ **Remoção completa do alert()**
+
+### 5. **Acesso Mobile** 🎉
+- ✅ **Aplicação acessível via IP externo**
+- ✅ **Backend configurado para aceitar conexões externas**
+- ✅ **CORS configurado corretamente**
+- ✅ **Proxy configurado para IP externo**
+
+### 6. **Interface de Usuário (Dashboard)**
 - ✅ **Exibe apenas as tarefas do dia, barra de progresso e bloco de notas**
 - ✅ **Tarefas independentes removidas da página inicial**
 - ✅ **Funcionalidade de edição integrada nas tarefas do dia**
@@ -30,14 +50,14 @@
 - ❌ **Google Calendar removido do MVP**
 - ✅ **Acesso à agenda semanal via weekly-schedule-manager**
 
-### 4. **Gerenciamento de Estado**
+### 7. **Gerenciamento de Estado**
 - ✅ **Zustand store implementado**
 - ✅ **React Query para API calls**
-- ✅ **CRUD para agenda semanal (criação funcionando)**
+- ✅ **CRUD completo para agenda semanal**
 - ✅ **Sistema de tarefas**
 - ✅ **Notas e progresso**
 
-### 5. **Progressive Web App**
+### 8. **Progressive Web App**
 - ✅ **Manifest configurado**
 - ✅ **Service Worker**
 - ✅ **Instalação nativa**
@@ -47,12 +67,7 @@
 
 ## 🔄 **FUNCIONALIDADES EM DESENVOLVIMENTO**
 
-### 1. **CRUD Completo de Atividades**
-- ✅ **Criação de atividades funcionando**
-- ✅ **Edição de atividades semanais implementada**
-- ⚠️ **Deleção de atividades semanais ainda não implementada**
-
-### 2. **Funcionalidades Avançadas**
+### 1. **Funcionalidades Avançadas**
 - ⚠️ **Notificações push**
 - ⚠️ **Export/import de dados**
 - ⚠️ **Analytics e métricas**
@@ -65,31 +80,32 @@
 ```bash
 npm run dev
 # URL: http://localhost:8080
-# Proxy: /api → http://localhost:3000
+# URL Externa: http://192.168.1.9:8080
+# Proxy: /api → http://192.168.1.9:3000
 ```
 
 ### **Backend API Real**
-- **URL:** `http://localhost:3000`
+- **URL:** `http://192.168.1.9:3000`
 - **Database:** PostgreSQL com Prisma ORM
 - **Endpoints:**
   - `GET /api/auth/google` - Inicia OAuth
   - `GET /api/auth/google/callback` - Processa callback
   - `POST /api/activities` - Criar atividade
   - `GET /api/activities` - Listar atividades
-  - `PUT /api/activities/:id` - Atualizar atividade (pendente)
-  - `DELETE /api/activities/:id` - Deletar atividade (pendente)
+  - `PUT /api/activities/:id` - Atualizar atividade
+  - `DELETE /api/activities/:id` - Deletar atividade
 - **Status:** ✅ Funcionando
 
 ### **Variáveis de Ambiente Necessárias**
 ```env
 # Frontend (.env)
-VITE_API_URL=http://localhost:3000/api
+VITE_API_URL=http://192.168.1.9:3000
 
 # Backend (.env)
 GOOGLE_CLIENT_ID=your-client-id
 GOOGLE_CLIENT_SECRET=your-client-secret
-GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/google/callback
-GOOGLE_REDIRECT_URI_FRONTEND=http://localhost:8080/auth/callback
+GOOGLE_REDIRECT_URI=http://192.168.1.9:3000/api/auth/google/callback
+GOOGLE_REDIRECT_URI_FRONTEND=http://192.168.1.9:8080/auth/callback
 JWT_SECRET=your-jwt-secret
 DATABASE_URL=postgresql://user:password@localhost:5432/routinely
 ```
@@ -129,6 +145,7 @@ src/
 │   ├── Header.tsx             # Header com navegação
 │   ├── TaskList.tsx           # Lista de tarefas do dia (com edição)
 │   ├── EditActivityDialog.tsx # Dialog de edição de atividades
+│   ├── DeleteConfirmationDialog.tsx # Dialog de confirmação de deleção
 │   ├── WeeklySchedule.tsx     # Agenda semanal
 │   └── ui/                    # Componentes shadcn/ui
 ├── pages/
@@ -143,6 +160,7 @@ src/
 ├── vite.config.ts             # Configuração Vite + proxy
 ├── tailwind.config.ts         # Configuração Tailwind
 ├── tsconfig.json              # Configuração TypeScript
+├── .env                       # Variáveis de ambiente
 └── package.json               # Dependências
 ```
 
@@ -159,29 +177,28 @@ npm run dev
 ```
 
 ### **2. Verificar Funcionalidades**
-1. **Acessar:** http://localhost:8080
+1. **Acessar:** http://localhost:8080 ou http://192.168.1.9:8080
 2. **Testar login Google:** Clique em "Entrar com Google"
 3. **Verificar autenticação:** Deve redirecionar para dashboard
 4. **Testar funcionalidades:** Agenda, tarefas, notas
-5. **Testar criação de atividades:** Deve funcionar com backend real
-6. **Testar edição de tarefas:** Clique no ícone de edição nas tarefas do dia
-7. **Testar sincronização de data:** Selecione dia diferente na agenda semanal e crie atividade
-8. **Testar filtro de tarefas:** Página inicial deve mostrar apenas tarefas do dia atual
+5. **Testar CRUD completo:** Criar, editar, deletar atividades
+6. **Testar feedback visual:** Toast notifications e confirmações
+7. **Testar acesso mobile:** Via IP externo no celular
 
 ### **3. Próximos Passos Recomendados**
 
 #### **Prioridade Alta:**
-1. **Implementar deleção de atividades semanais**
+1. **Implementar testes unitários**
 2. **Melhorar tratamento de erros da API**
 3. **Adicionar validação de dados**
-4. **Implementar testes unitários**
+4. **Implementar notificações push**
 
 #### **Prioridade Média:**
-6. **Melhorar UX/UI**
-7. **Implementar funcionalidades avançadas**
-   - Notificações push
+5. **Melhorar UX/UI**
+6. **Implementar funcionalidades avançadas**
    - Export/import
    - Analytics
+   - Relatórios
 
 ---
 
@@ -192,18 +209,20 @@ npm run dev
 - ✅ **Autenticação integrada**
 - ✅ **Redirecionamento funcionando**
 - ✅ **Backend API real funcionando**
-- ✅ **Criação de atividades semanais funcionando**
-- ✅ **Edição de atividades funcionando**
+- ✅ **CRUD completo de atividades funcionando**
 - ✅ **Interface simplificada (apenas tarefas do dia)**
 - ✅ **Sincronização de data corrigida (agenda semanal)**
 - ✅ **Filtro de tarefas por data corrigido (página inicial)**
 - ✅ **Banco de dados PostgreSQL configurado**
+- ✅ **Deleção de atividades implementada**
+- ✅ **Feedback visual implementado**
+- ✅ **Acesso mobile configurado**
 
 ### **Pendentes:**
-- ⚠️ **Deleção de atividades semanais**
+- ⚠️ **Implementar testes unitários**
 - ⚠️ **Melhorar tratamento de erros**
 - ⚠️ **Adicionar validação de dados**
-- ⚠️ **Remover logs de debug** (após confirmar funcionamento)
+- ⚠️ **Implementar notificações push**
 
 ---
 
@@ -225,13 +244,13 @@ npm run dev
 
 ## 🎯 **OBJETIVOS PARA PRÓXIMA SESSÃO**
 
-1. **Implementar deleção de atividades semanais**
+1. **Implementar testes unitários**
 2. **Melhorar tratamento de erros da API**
 3. **Adicionar validação de dados**
-4. **Implementar testes unitários**
+4. **Implementar notificações push**
 5. **Melhorar UX/UI**
 
 ---
 
-**Status:** ✅ **Projeto funcional com API real**  
-**Próximo foco:** Implementar deleção de atividades semanais 
+**Status:** ✅ **MVP completo com CRUD total e feedback visual**  
+**Próximo foco:** Implementar testes unitários e melhorar robustez 

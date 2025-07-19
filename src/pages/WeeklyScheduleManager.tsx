@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { EditActivityDialog } from '@/components/EditActivityDialog';
+import { useToast } from '@/components/ui/use-toast';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 // Tipo para compatibilidade
 
 import { 
@@ -21,6 +23,7 @@ import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const WeeklyScheduleManager = () => {
+  const { toast } = useToast();
   const { data: activities = [], isLoading: isLoadingSchedule } = useActivities();
   const { isLoading: isLoadingDays } = useDaysOfWeek();
   const { isLoading: isLoadingTypes } = useActivityTypes();
@@ -35,6 +38,15 @@ const WeeklyScheduleManager = () => {
   const [editingItem, setEditingItem] = useState<WeeklyScheduleItem | null>(null);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    activityId: string;
+    activityName: string;
+  }>({
+    isOpen: false,
+    activityId: '',
+    activityName: '',
+  });
   
   const [formData, setFormData] = useState<CreateActivityRequest>({
     title: '',
@@ -67,6 +79,11 @@ const WeeklyScheduleManager = () => {
             date: formData.date,
           }
         });
+        
+        toast({
+          title: '✅ Atividade atualizada!',
+          description: `"${formData.title}" foi editada com sucesso.`,
+        });
       } else {
         const payload = {
           title: formData.title,
@@ -77,11 +94,22 @@ const WeeklyScheduleManager = () => {
           date: formData.date,
         };
         await createActivity.mutateAsync(payload);
+        
+        toast({
+          title: '✅ Atividade criada!',
+          description: `"${formData.title}" foi adicionada à sua agenda.`,
+        });
       }
       
       resetForm();
     } catch (error) {
       console.error('Erro ao salvar item:', error);
+      
+      toast({
+        title: '❌ Erro ao salvar atividade',
+        description: error instanceof Error ? error.message : 'Não foi possível salvar a atividade. Tente novamente.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -104,13 +132,34 @@ const WeeklyScheduleManager = () => {
     setShowEditDialog(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este item?')) {
-      try {
-        await deleteActivity.mutateAsync(id);
-      } catch (error) {
-        console.error('Erro ao deletar item:', error);
-      }
+  const handleDelete = async (id: string, activityName: string) => {
+    setDeleteDialog({
+      isOpen: true,
+      activityId: id,
+      activityName: activityName,
+    });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteActivity.mutateAsync(deleteDialog.activityId);
+      
+      toast({
+        title: '✅ Atividade excluída com sucesso!',
+        description: `"${deleteDialog.activityName}" foi removida da sua agenda semanal.`,
+      });
+      
+      setDeleteDialog({ isOpen: false, activityId: '', activityName: '' });
+    } catch (error) {
+      console.error('Erro ao deletar item:', error);
+      
+      toast({
+        title: '❌ Erro ao excluir atividade',
+        description: error instanceof Error ? error.message : 'Não foi possível excluir a atividade. Tente novamente.',
+        variant: 'destructive',
+      });
+      
+      setDeleteDialog({ isOpen: false, activityId: '', activityName: '' });
     }
   };
 
@@ -254,7 +303,7 @@ const WeeklyScheduleManager = () => {
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => handleDelete(item.id)}
+                    onClick={() => handleDelete(item.id, item.title)}
                     className="text-red-400 hover:text-red-300"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -410,6 +459,16 @@ const WeeklyScheduleManager = () => {
           setShowEditDialog(false);
           setEditingActivity(null);
         }}
+      />
+
+      {/* Dialog de Confirmação de Deleção */}
+      <DeleteConfirmationDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={() => setDeleteDialog({ isOpen: false, activityId: '', activityName: '' })}
+        onConfirm={confirmDelete}
+        title="Excluir Atividade"
+        description={`Tem certeza que deseja excluir "${deleteDialog.activityName}"?`}
+        isLoading={deleteActivity.isPending}
       />
     </div>
   );

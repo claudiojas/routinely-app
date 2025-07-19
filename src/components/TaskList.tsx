@@ -9,6 +9,8 @@ import {
 } from '../hooks/useApi';
 import { Activity } from '../hooks/useApi';
 import { EditActivityDialog } from './EditActivityDialog';
+import { useToast } from './ui/use-toast';
+import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 
 // Tipo para compatibilidade com o componente existente
 type WeeklyScheduleItem = {
@@ -23,6 +25,7 @@ type WeeklyScheduleItem = {
 };
 
 const TaskList = () => {
+  const { toast } = useToast();
   const { selectedDate } = useStore();
   const { data: activities = [], isLoading } = useActivities();
   const updateActivity = useUpdateActivity();
@@ -30,6 +33,15 @@ const TaskList = () => {
   
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    activityId: string;
+    activityName: string;
+  }>({
+    isOpen: false,
+    activityId: '',
+    activityName: '',
+  });
 
   // Converter atividades para o formato esperado pelo componente
   const weeklySchedule: WeeklyScheduleItem[] = activities.map(activity => ({
@@ -76,13 +88,34 @@ const TaskList = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
-      try {
-        await deleteActivity.mutateAsync(id);
-      } catch (error) {
-        console.error('Erro ao excluir tarefa:', error);
-      }
+  const handleDelete = async (id: string, activityName: string) => {
+    setDeleteDialog({
+      isOpen: true,
+      activityId: id,
+      activityName: activityName,
+    });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteActivity.mutateAsync(deleteDialog.activityId);
+      
+      toast({
+        title: '✅ Tarefa excluída com sucesso!',
+        description: `"${deleteDialog.activityName}" foi removida da sua agenda.`,
+      });
+      
+      setDeleteDialog({ isOpen: false, activityId: '', activityName: '' });
+    } catch (error) {
+      console.error('Erro ao excluir tarefa:', error);
+      
+      toast({
+        title: '❌ Erro ao excluir tarefa',
+        description: error instanceof Error ? error.message : 'Não foi possível excluir a tarefa. Tente novamente.',
+        variant: 'destructive',
+      });
+      
+      setDeleteDialog({ isOpen: false, activityId: '', activityName: '' });
     }
   };
 
@@ -173,7 +206,7 @@ const TaskList = () => {
                     <Edit className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={() => handleDelete(item.id)}
+                    onClick={() => handleDelete(item.id, item.activity)}
                     className="p-1 text-gray-400 hover:text-red-500 transition-colors"
                     title="Excluir tarefa"
                   >
@@ -194,6 +227,16 @@ const TaskList = () => {
           setShowEditDialog(false);
           setEditingActivity(null);
         }}
+      />
+
+      {/* Dialog de Confirmação de Deleção */}
+      <DeleteConfirmationDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={() => setDeleteDialog({ isOpen: false, activityId: '', activityName: '' })}
+        onConfirm={confirmDelete}
+        title="Excluir Tarefa"
+        description={`Tem certeza que deseja excluir "${deleteDialog.activityName}"?`}
+        isLoading={deleteActivity.isPending}
       />
     </div>
   );
