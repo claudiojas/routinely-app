@@ -2,7 +2,7 @@
 
 **Última atualização:** Julho 2024  
 **Versão:** 0.1.2  
-**Status:** MVP focado em rotina diária, Google Calendar removido
+**Status:** MVP focado em rotina diária, API real funcionando
 
 ---
 
@@ -15,19 +15,27 @@
 - ✅ **AuthContext integrado e funcionando**
 - ✅ **Redirecionamento automático após login**
 
-### 2. **Interface de Usuário (Dashboard)**
+### 2. **Backend API Real** 🎉
+- ✅ **Node.js/Express backend funcionando**
+- ✅ **Prisma ORM com PostgreSQL**
+- ✅ **API REST completa implementada**
+- ✅ **Endpoints de autenticação funcionando**
+- ✅ **CRUD de atividades (criação funcionando)**
+
+### 3. **Interface de Usuário (Dashboard)**
 - ✅ **Exibe apenas as tarefas do dia, barra de progresso e bloco de notas**
 - ❌ **DatePicker removido da tela principal**
 - ❌ **Google Calendar removido do MVP**
 - ✅ **Acesso à agenda semanal via weekly-schedule-manager**
 
-### 3. **Gerenciamento de Estado**
+### 4. **Gerenciamento de Estado**
 - ✅ **Zustand store implementado**
+- ✅ **React Query para API calls**
 - ✅ **CRUD para agenda semanal (criação funcionando)**
 - ✅ **Sistema de tarefas**
 - ✅ **Notas e progresso**
 
-### 4. **Progressive Web App**
+### 5. **Progressive Web App**
 - ✅ **Manifest configurado**
 - ✅ **Service Worker**
 - ✅ **Instalação nativa**
@@ -37,19 +45,15 @@
 
 ## 🔄 **FUNCIONALIDADES EM DESENVOLVIMENTO**
 
-### 1. **Persistência de dados**
-- ⚠️ **Mock API atual**
-- ⚠️ **API real pendente**
-- ⚠️ **Banco de dados a definir**
+### 1. **CRUD Completo de Atividades**
+- ✅ **Criação de atividades funcionando**
+- ✅ **Edição de atividades semanais implementada**
+- ⚠️ **Deleção de atividades semanais ainda não implementada**
 
 ### 2. **Funcionalidades Avançadas**
 - ⚠️ **Notificações push**
 - ⚠️ **Export/import de dados**
 - ⚠️ **Analytics e métricas**
-
-### 3. **Edição e Deleção de Atividades**
-- ⚠️ **Edição de atividades semanais ainda não implementada**
-- ⚠️ **Deleção de atividades semanais ainda não implementada**
 
 ---
 
@@ -62,11 +66,16 @@ npm run dev
 # Proxy: /api → http://localhost:3000
 ```
 
-### **Backend OAuth Google**
+### **Backend API Real**
 - **URL:** `http://localhost:3000`
+- **Database:** PostgreSQL com Prisma ORM
 - **Endpoints:**
   - `GET /api/auth/google` - Inicia OAuth
   - `GET /api/auth/google/callback` - Processa callback
+  - `POST /api/activities` - Criar atividade
+  - `GET /api/activities` - Listar atividades
+  - `PUT /api/activities/:id` - Atualizar atividade (pendente)
+  - `DELETE /api/activities/:id` - Deletar atividade (pendente)
 - **Status:** ✅ Funcionando
 
 ### **Variáveis de Ambiente Necessárias**
@@ -80,6 +89,7 @@ GOOGLE_CLIENT_SECRET=your-client-secret
 GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/google/callback
 GOOGLE_REDIRECT_URI_FRONTEND=http://localhost:8080/auth/callback
 JWT_SECRET=your-jwt-secret
+DATABASE_URL=postgresql://user:password@localhost:5432/routinely
 ```
 
 ---
@@ -97,6 +107,17 @@ src/
 │   └── AuthContext.tsx        # Gerenciamento global de auth
 └── components/
     └── ProtectedRoute.tsx     # Proteção de rotas
+```
+
+### **API e Hooks**
+```
+src/
+├── services/
+│   └── api.ts                 # Serviço centralizado da API
+├── hooks/
+│   └── useApi.ts              # Hooks React Query para API
+└── types/
+    └── api.ts                 # Tipos TypeScript da API
 ```
 
 ### **Componentes Principais**
@@ -139,15 +160,15 @@ npm run dev
 2. **Testar login Google:** Clique em "Entrar com Google"
 3. **Verificar autenticação:** Deve redirecionar para dashboard
 4. **Testar funcionalidades:** Agenda, tarefas, notas
+5. **Testar criação de atividades:** Deve funcionar com backend real
 
 ### **3. Próximos Passos Recomendados**
 
 #### **Prioridade Alta:**
-1. **Implementar edição de atividades semanais**
-2. **Implementar deleção de atividades semanais**
-3. **Implementar persistência de dados real**
-4. **Desenvolver backend API**
-5. **Escolher e configurar banco de dados**
+1. **Implementar deleção de atividades semanais**
+2. **Melhorar tratamento de erros da API**
+3. **Adicionar validação de dados**
+4. **Implementar testes unitários**
 
 #### **Prioridade Média:**
 6. **Melhorar UX/UI**
@@ -164,14 +185,14 @@ npm run dev
 - ✅ **OAuth Google funcionando**
 - ✅ **Autenticação integrada**
 - ✅ **Redirecionamento funcionando**
+- ✅ **Backend API real funcionando**
 - ✅ **Criação de atividades semanais funcionando**
+- ✅ **Banco de dados PostgreSQL configurado**
 
 ### **Pendentes:**
-- ⚠️ **Edição de atividades semanais**
 - ⚠️ **Deleção de atividades semanais**
-- ⚠️ **Persistência de dados real**
-- ⚠️ **Backend API real**
-- ⚠️ **Banco de dados**
+- ⚠️ **Melhorar tratamento de erros**
+- ⚠️ **Adicionar validação de dados**
 
 ---
 
@@ -183,23 +204,23 @@ npm run dev
 - **Lovable** - Ambiente de desenvolvimento
 
 ### **Tecnologias:**
-- **React 18.3.1** + **TypeScript 5.5.3**
-- **Vite 5.4.1** + **Tailwind CSS 3.4.11**
-- **Zustand 5.0.5** + **React Router DOM 6.26.2**
-- **shadcn/ui** + **Radix UI**
+- **Frontend:** React 18.3.1 + TypeScript 5.5.3
+- **Backend:** Node.js + Express + Prisma + PostgreSQL
+- **Build:** Vite 5.4.1 + Tailwind CSS 3.4.11
+- **State:** Zustand 5.0.5 + React Query
+- **UI:** shadcn/ui + Radix UI
 
 ---
 
 ## 🎯 **OBJETIVOS PARA PRÓXIMA SESSÃO**
 
-1. **Implementar edição de atividades semanais**
-2. **Implementar deleção de atividades semanais**
-3. **Implementar persistência de dados real**
-4. **Desenvolver backend API básico**
-5. **Melhorar tratamento de erros**
-6. **Adicionar testes unitários**
+1. **Implementar deleção de atividades semanais**
+2. **Melhorar tratamento de erros da API**
+3. **Adicionar validação de dados**
+4. **Implementar testes unitários**
+5. **Melhorar UX/UI**
 
 ---
 
-**Status:** ✅ **Projeto funcional e pronto para desenvolvimento**  
-**Próximo foco:** Edição e deleção de atividades semanais, persistência de dados 
+**Status:** ✅ **Projeto funcional com API real**  
+**Próximo foco:** Implementar deleção de atividades semanais 

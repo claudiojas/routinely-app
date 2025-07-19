@@ -4,6 +4,7 @@ import { Plus, Calendar, Save, X, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { EditActivityDialog } from '@/components/EditActivityDialog';
 // Tipo para compatibilidade
 
 import { 
@@ -12,7 +13,8 @@ import {
   useUpdateActivity, 
   useDeleteActivity,
   useDaysOfWeek,
-  useActivityTypes
+  useActivityTypes,
+  Activity
 } from '../hooks/useApi';
 import { ActivityType, CreateActivityRequest, WeeklyScheduleItem } from '../types/api';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
@@ -31,6 +33,8 @@ const WeeklyScheduleManager = () => {
   const [selectedDate, setSelectedDate] = useState(getToday());
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<WeeklyScheduleItem | null>(null);
+  const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   
   const [formData, setFormData] = useState<CreateActivityRequest>({
     title: '',
@@ -52,6 +56,7 @@ const WeeklyScheduleManager = () => {
             title: formData.title,
             description: formData.description,
             type: formData.type,
+            date: formData.date,
           }
         });
       } else {
@@ -73,17 +78,22 @@ const WeeklyScheduleManager = () => {
   };
 
   const handleEdit = (item: WeeklyScheduleItem) => {
-    setEditingItem(item);
-    setFormData({
+    // Converter WeeklyScheduleItem para Activity para usar o novo diálogo
+    const activity: Activity = {
+      id: item.id,
+      userId: item.userId,
       title: item.title,
-      startTime: item.startTime,
-      endTime: item.endTime,
       description: item.description,
       type: item.type,
+      startTime: item.startTime,
+      endTime: item.endTime,
       date: item.date,
-    });
-    setSelectedDate(item.date);
-    setShowForm(true);
+      createdAt: new Date(item.createdAt),
+      updatedAt: new Date(item.updatedAt),
+    };
+    
+    setEditingActivity(activity);
+    setShowEditDialog(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -383,6 +393,16 @@ const WeeklyScheduleManager = () => {
           </div>
         )}
       </div>
+
+      {/* Dialog de Edição */}
+      <EditActivityDialog
+        activity={editingActivity}
+        isOpen={showEditDialog}
+        onClose={() => {
+          setShowEditDialog(false);
+          setEditingActivity(null);
+        }}
+      />
     </div>
   );
 };

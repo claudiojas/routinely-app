@@ -74,6 +74,15 @@ export interface UpdateWeeklyScheduleRequest extends Partial<CreateWeeklySchedul
   completed?: boolean
 }
 
+export interface UpdateActivityRequest {
+  title?: string;
+  description?: string;
+  type?: 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO';
+  startTime?: string;
+  endTime?: string;
+  date: string; // ⚠️ OBRIGATÓRIO - formato YYYY-MM-DD
+}
+
 // Tipos para tarefas
 export interface Task {
   id: string

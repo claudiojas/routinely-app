@@ -57,6 +57,7 @@ export interface UpdateActivityRequest {
   type?: 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO';
   startTime?: string;
   endTime?: string;
+  date: string; // ⚠️ OBRIGATÓRIO - formato YYYY-MM-DD
 }
 
 export interface ApiResponse<T> {
