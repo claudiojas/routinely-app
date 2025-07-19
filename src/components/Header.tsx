@@ -65,17 +65,17 @@ const Header = () => {
                   : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
               }`}
             >
-              Dashboard
+              Agenda Semanal
             </Link>
             <Link
-              to="/weekly-schedule-manager"
+              to="/dashboard"
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                location.pathname === '/weekly-schedule-manager'
+                location.pathname === '/dashboard'
                   ? 'bg-violet-600/20 text-violet-300 border border-violet-600/30'
                   : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
               }`}
             >
-              Agenda Semanal
+              Dashboard
             </Link>
           </nav>
 
@@ -198,18 +198,18 @@ const Header = () => {
                     : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
                 }`}
               >
-                Dashboard
+                Agenda Semanal
               </Link>
               <Link
-                to="/weekly-schedule-manager"
+                to="/dashboard"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                  location.pathname === '/weekly-schedule-manager'
+                  location.pathname === '/dashboard'
                     ? 'bg-violet-600/20 text-violet-300 border border-violet-600/30'
                     : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
                 }`}
               >
-                Agenda Semanal
+                Dashboard
               </Link>
               
               {/* Mobile User Actions */}

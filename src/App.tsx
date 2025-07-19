@@ -33,14 +33,14 @@ const App = () => (
             <Route path="/" element={
               <ProtectedRoute>
                 <Layout>
-                  <Index />
+                  <WeeklyScheduleManager />
                 </Layout>
               </ProtectedRoute>
             } />
-            <Route path="/weekly-schedule-manager" element={
+            <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Layout>
-                  <WeeklyScheduleManager />
+                  <Index />
                 </Layout>
               </ProtectedRoute>
             } />
