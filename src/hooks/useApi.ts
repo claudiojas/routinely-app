@@ -436,15 +436,7 @@ const mapActivityToLegacy = (activity: Activity) => ({
   notes: activity.description,
 });
 
-export const useTasks = () => {
-  const { data: activities = [], isLoading, error } = useActivities();
-  
-  return {
-    data: activities.map(mapActivityToLegacy),
-    isLoading,
-    error,
-  };
-};
+
 
 export const useTasksByDate = (date: string) => {
   const { data: activities = [], isLoading, error } = useActivities();
@@ -456,67 +448,17 @@ export const useTasksByDate = (date: string) => {
   };
 };
 
-export const useCreateTask = () => {
-  const mutation = useCreateActivity();
-  
-  return {
-    mutateAsync: (task: { title: string; description?: string; type: string }) => {
-      const activityData: CreateActivityRequest = {
-        title: task.title,
-        description: task.description || '',
-        type: task.type.toUpperCase() as 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO',
-        startTime: '09:00', // Valores padrão
-        endTime: '10:00',
-        date: new Date().toISOString().split('T')[0], // Adicionar data
-      };
-      return mutation.mutateAsync(activityData);
-    },
-    isPending: mutation.isPending,
-  };
-};
 
-export const useUpdateTask = () => {
-  const mutation = useUpdateActivity();
-  
-  return {
-    mutateAsync: ({ id, updates }: { id: string; updates: { title?: string; description?: string; type?: string } }) => {
-      const activityData: UpdateActivityRequest = {
-        title: updates.title,
-        description: updates.description,
-        type: updates.type?.toUpperCase() as 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO' | undefined,
-        date: new Date().toISOString().split('T')[0], // Adicionar data atual
-      };
-      return mutation.mutateAsync({ id, data: activityData });
-    },
-    isPending: mutation.isPending,
-  };
-};
 
-export const useDeleteTask = () => {
-  return useDeleteActivity();
-};
 
-export const useToggleTask = () => {
-  // A API real não tem toggle, então vamos simular
-  const mutation = useUpdateActivity();
-  
-  return {
-    mutateAsync: (id: string) => {
-      // Simular toggle (não implementado na API real)
-      return Promise.resolve();
-    },
-    isPending: mutation.isPending,
-  };
-};
+
+
+
+
 
 // ===== HOOKS DE NOTAS (não implementados na API real) =====
 
-export const useNotes = () => {
-  return useQuery({
-    queryKey: ['notes'],
-    queryFn: () => Promise.resolve([]),
-  });
-};
+
 
 export const useNotesByDate = (date: string) => {
   return useQuery({
@@ -549,13 +491,4 @@ export const useUpdateNote = () => {
   });
 };
 
-export const useDeleteNote = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (id: string) => Promise.resolve(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notes'] });
-    },
-  });
-}; 
+ 
