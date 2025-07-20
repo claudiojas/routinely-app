@@ -267,14 +267,6 @@ const WeeklyScheduleManager = () => {
 
         {/* Botões de Ação */}
         <div className="mb-6 flex justify-center gap-4 flex-wrap">
-          <Button
-            onClick={handleFinalizeWeek}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
-          >
-            <CheckCircle className="w-4 h-4 mr-2" />
-            Finalizar Semana
-          </Button>
-          
           {canStartNewWeek && (
             <Button
               onClick={handleStartNewWeek}
@@ -313,9 +305,22 @@ const WeeklyScheduleManager = () => {
                 <h2 className="text-xl font-semibold text-white">
                   {week.isActive ? 'Semana Ativa' : `Semana ${week.weekNumber}`}
                 </h2>
-                <span className="text-sm text-slate-400">
-                  {format(week.startDate, 'dd/MM', { locale: ptBR })} - {format(week.endDate, 'dd/MM', { locale: ptBR })}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-slate-400">
+                    {format(week.startDate, 'dd/MM', { locale: ptBR })} - {format(week.endDate, 'dd/MM', { locale: ptBR })}
+                  </span>
+                  {/* Botão Finalizar Semana - apenas para semanas ativas */}
+                  {week.isActive && (
+                    <Button
+                      onClick={handleFinalizeWeek}
+                      size="sm"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Finalizar Semana
+                    </Button>
+                  )}
+                </div>
               </div>
               
               {/* Day Selector */}
