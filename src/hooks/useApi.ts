@@ -27,6 +27,7 @@ export interface Activity {
   startTime: string;
   endTime: string;
   date: string;
+  completed?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -110,8 +111,8 @@ async function apiRequest<T>(
       ...(options.headers as Record<string, string>),
     };
 
-    // Só adicionar Content-Type se não for DELETE
-    if (options.method !== 'DELETE') {
+    // Só adicionar Content-Type se tiver body na requisição
+    if (options.body) {
       headers['Content-Type'] = 'application/json';
     }
 
@@ -302,6 +303,27 @@ export const useDeleteActivity = () => {
       if (response.error) {
         throw new Error(response.error);
       }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+    },
+  });
+};
+
+export const useToggleActivity = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest<Activity>(`/activities/${id}/toggle`, {
+        method: 'PATCH',
+      });
+      
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      
+      return response.data!;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activities'] });

@@ -5,7 +5,8 @@ import { useStore } from '../store/useStore';
 import { 
   useActivities, 
   useUpdateActivity, 
-  useDeleteActivity 
+  useDeleteActivity,
+  useToggleActivity
 } from '../hooks/useApi';
 import { Activity } from '../hooks/useApi';
 import { EditActivityDialog } from './EditActivityDialog';
@@ -30,6 +31,7 @@ const TaskList = () => {
   const { data: activities = [], isLoading } = useActivities();
   const updateActivity = useUpdateActivity();
   const deleteActivity = useDeleteActivity();
+  const toggleActivity = useToggleActivity();
   
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -50,7 +52,7 @@ const TaskList = () => {
     startTime: activity.startTime || '09:00',
     endTime: activity.endTime || '10:00',
     type: activity.type.toLowerCase(),
-    completed: false, // A API real não tem campo completed
+    completed: activity.completed || false, // Usar campo completed da API
     notes: activity.description,
     date: activity.date, // Adicionar data para filtrar
   }));
@@ -80,11 +82,23 @@ const TaskList = () => {
   };
 
   const handleToggleComplete = async (id: string, completed: boolean) => {
+    console.log('Tentando fazer toggle para atividade:', id, 'completed:', completed);
     try {
-      // A API real não tem campo completed, então vamos simular
-      console.log('Toggle completed:', id, !completed);
+      const result = await toggleActivity.mutateAsync(id);
+      console.log('Resposta da API:', result);
+      
+      toast({
+        title: completed ? '❌ Tarefa desmarcada' : '✅ Tarefa concluída',
+        description: completed ? 'Tarefa foi desmarcada como concluída.' : 'Tarefa foi marcada como concluída!',
+      });
     } catch (error) {
       console.error('Erro ao atualizar tarefa:', error);
+      
+      toast({
+        title: '❌ Erro ao atualizar tarefa',
+        description: error instanceof Error ? error.message : 'Não foi possível atualizar a tarefa. Tente novamente.',
+        variant: 'destructive',
+      });
     }
   };
 

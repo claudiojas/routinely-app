@@ -14,27 +14,21 @@ const ProgressBar = () => {
     endTime: activity.endTime || '10:00',
     type: activity.type.toLowerCase(),
     dayOfWeek: 'monday', // Simplificado por enquanto
-    completed: false, // A API real não tem campo completed
+    completed: activity.completed || false, // Usar campo completed da API
     isActive: true,
+    date: activity.date, // Adicionar campo date
   }));
   
-  // Calcular progresso baseado na agenda semanal
-  const today = new Date();
-  const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
+  // Filtrar atividades do dia selecionado (igual ao TaskList)
+  const selectedDate = useStore().selectedDate;
+  const todayItems = weeklySchedule.filter(item => item.date === selectedDate);
   
-  // Filtrar itens da semana atual
-  const weekItems = weeklySchedule.filter(item => {
-    const itemDate = new Date();
-    const dayOfWeek = itemDate.getDay();
-    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    return item.isActive && days[dayOfWeek] === item.dayOfWeek;
-  });
-  
-  const completedItems = weekItems.filter(item => item.completed);
+  const completedItems = todayItems.filter(item => item.completed);
   const completedTasks = tasks.filter(task => task.completed);
   
-  const totalItems = weekItems.length + tasks.length;
-  const totalCompleted = completedItems.length + completedTasks.length;
+  // Usar apenas atividades para o cálculo principal do progresso
+  const totalItems = todayItems.length;
+  const totalCompleted = completedItems.length;
   const progress = totalItems > 0 ? Math.round((totalCompleted / totalItems) * 100) : 0;
 
   const getProgressColor = (progress: number) => {
@@ -124,7 +118,7 @@ const ProgressBar = () => {
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Agenda Semanal:</span>
-          <span className="font-medium">{completedItems.length}/{weekItems.length}</span>
+          <span className="font-medium">{completedItems.length}/{todayItems.length}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Tarefas Independentes:</span>
