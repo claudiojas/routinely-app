@@ -208,13 +208,9 @@ export const useWeekManagement = () => {
   // Obter semana ativa
   const getActiveWeek = () => state.weeks.find(week => week.isActive);
 
-  // Obter semanas finalizadas
-  const getCompletedWeeks = () => state.weeks.filter(week => week.isCompleted);
-
   return {
     weeks: state.weeks,
     activeWeek: getActiveWeek(),
-    completedWeeks: getCompletedWeeks(),
     shouldShowFinalizeButton,
     canStartNewWeek,
     finalizeCurrentWeek,

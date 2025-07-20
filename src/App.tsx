@@ -12,7 +12,7 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import SignUp from "./pages/SignUp";
 import WeeklyScheduleManager from "./pages/WeeklyScheduleManager";
-import CompletedWeeks from "./pages/CompletedWeeks";
+
 import UserProfile from "./components/UserProfile";
 import Layout from "./components/Layout";
 import AuthCallback from "./pages/AuthCallback";
@@ -45,13 +45,7 @@ const App = () => (
                 </Layout>
               </ProtectedRoute>
             } />
-            <Route path="/completed-weeks" element={
-              <ProtectedRoute>
-                <Layout>
-                  <CompletedWeeks />
-                </Layout>
-              </ProtectedRoute>
-            } />
+
             <Route path="/profile" element={
               <ProtectedRoute>
                 <Layout>

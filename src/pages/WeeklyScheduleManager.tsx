@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Plus, Calendar, Save, X, Edit, Trash2, CheckCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -188,7 +188,7 @@ const WeeklyScheduleManager = () => {
     
     toast({
       title: '✅ Semana finalizada!',
-      description: 'A semana foi enviada para a página de semanas finalizadas.',
+      description: 'A semana foi finalizada com sucesso.',
     });
   };
 
@@ -285,15 +285,7 @@ const WeeklyScheduleManager = () => {
             Adicionar Atividade
           </Button>
 
-          <Link to="/completed-weeks">
-            <Button
-              variant="outline"
-              className="border-slate-600 text-slate-300 hover:bg-slate-700"
-            >
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Ver Semanas Finalizadas
-            </Button>
-          </Link>
+
         </div>
 
         {/* Semanas */}
