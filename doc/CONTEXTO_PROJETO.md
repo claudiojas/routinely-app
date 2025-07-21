@@ -387,6 +387,45 @@ npm run dev
 
 ---
 
+## 🚦 Status Atual do Projeto
+
+- **MVP concluído:**
+  - Funcionalidades principais implementadas (agenda semanal, tarefas, notas, progresso, autenticação, PWA, deleção e múltiplas semanas ativas)
+  - Persistência real no backend
+  - Interface moderna, responsiva e pronta para uso
+  - Documentação clara e visão de produto
+  - Marca da Agência Estudio Code em destaque
+- **Aguardando:**
+  - Validação final de usabilidade
+  - Feedback de usuários reais
+  - Preparação para deploy e divulgação
+
+---
+
+## 🛣️ Próximos Passos
+
+1. **Deploy da Aplicação**
+   - Avaliar as melhores plataformas para deploy (Vercel, Netlify, Render, AWS, GCP, Azure, etc.)
+   - Decidir entre opções gratuitas (para MVP/testes) ou pagas (para produção, escalabilidade e domínio próprio)
+   - Configurar domínio, HTTPS e variáveis de ambiente
+
+2. **Login Google para Todos**
+   - Ajustar as configurações do projeto Google Cloud Console
+   - Permitir que qualquer usuário com conta Google possa autenticar (remover restrição de e-mails/testes)
+   - Revisar políticas de privacidade e consentimento
+
+3. **Melhorias de Segurança e Qualidade**
+   - Implementar pipeline de CI/CD (integração e deploy contínuos)
+   - Adicionar testes automatizados (unitários e E2E)
+   - Implementar feature de cookies para autenticação e consentimento
+   - Revisar headers de segurança, CORS e proteção contra XSS/CSRF
+
+---
+
+Esses passos garantirão que o Routinely evolua de MVP para um produto robusto, seguro e pronto para escalar.
+
+---
+
 **Última atualização**: Dezembro 2024  
 **Versão do projeto**: 0.0.0  
 **Status**: Desenvolvimento ativo  
