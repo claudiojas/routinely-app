@@ -96,7 +96,7 @@ const NotePad = () => {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Digite suas notas, ideias ou reflexões do dia..."
-            className="w-full h-64 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            className="w-full h-64 p-4 border border-gray-300 text-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             autoFocus
           />
           <div className="flex justify-end space-x-3">
@@ -115,7 +115,7 @@ const NotePad = () => {
         <div className="min-h-[200px]">
           {content ? (
             <div className="prose prose-sm max-w-none">
-              <pre className="whitespace-pre-wrap text-gray-700 font-sans leading-relaxed">
+              <pre className="whitespace-pre-wrap text-slate-800 font-sans leading-relaxed">
                 {content}
               </pre>
             </div>
