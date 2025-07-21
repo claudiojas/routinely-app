@@ -1,198 +1,59 @@
-import { useState, useEffect, useMemo } from 'react';
-import { format, startOfWeek, endOfWeek, addWeeks, isSameWeek, isToday, isSaturday, isAfter } from 'date-fns';
+import { useWeeks, useCreateWeek, useDeleteWeek, Week as ApiWeek } from './useApi';
+import { useMemo } from 'react';
+import { format, startOfWeek, endOfWeek, addWeeks, isSameWeek, isToday, isSaturday, isAfter, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Week, WeekDay, WeekManagementState } from '../types/weekManagement';
+import { WeekDay } from '../types/weekManagement';
 
 const MAX_WEEKS = 4;
 
 export const useWeekManagement = () => {
-  const [state, setState] = useState<WeekManagementState>({
-    weeks: [],
-    currentWeekIndex: 0,
-    maxWeeks: MAX_WEEKS,
-  });
+  const { data: weeks = [], isLoading: isLoadingWeeks } = useWeeks();
+  const createWeek = useCreateWeek();
+  const deleteWeekMutation = useDeleteWeek();
 
-  // Gerar semanas iniciais
-  useEffect(() => {
-    const today = new Date();
-    const currentWeekStart = startOfWeek(today, { weekStartsOn: 0 }); // Domingo
-    
-    const initialWeeks: Week[] = [];
-    
-    // Semana atual
-    initialWeeks.push({
-      id: `week-${format(currentWeekStart, 'yyyy-MM-dd')}`,
-      startDate: currentWeekStart,
-      endDate: endOfWeek(currentWeekStart, { weekStartsOn: 0 }),
-      isActive: true,
-      isCompleted: false,
-      weekNumber: 1,
-    });
-
-    // 3 semanas anteriores
-    for (let i = 1; i <= 3; i++) {
-      const weekStart = addWeeks(currentWeekStart, -i);
-      initialWeeks.push({
-        id: `week-${format(weekStart, 'yyyy-MM-dd')}`,
-        startDate: weekStart,
-        endDate: endOfWeek(weekStart, { weekStartsOn: 0 }),
-        isActive: false,
-        isCompleted: true,
-        weekNumber: i + 1,
-      });
-    }
-
-    setState(prev => ({
-      ...prev,
-      weeks: initialWeeks,
-    }));
-  }, []);
-
-  // Verificar automaticamente se a semana atual expirou
-  useEffect(() => {
-    const checkExpiredWeek = () => {
-      const today = new Date();
-      const activeWeek = state.weeks.find(week => week.isActive);
-      
-      if (activeWeek && isAfter(today, activeWeek.endDate)) {
-        // Semana expirou automaticamente
-        setState(prev => {
-          const updatedWeeks = [...prev.weeks];
-          
-          // Marcar semana atual como finalizada
-          const currentWeekIndex = updatedWeeks.findIndex(week => week.isActive);
-          if (currentWeekIndex !== -1) {
-            updatedWeeks[currentWeekIndex] = {
-              ...updatedWeeks[currentWeekIndex],
-              isActive: false,
-              isCompleted: true,
-            };
-          }
-
-          // Atualizar números das semanas
-          updatedWeeks.forEach((week, index) => {
-            week.weekNumber = index + 1;
-          });
-
-          return {
-            ...prev,
-            weeks: updatedWeeks,
-            currentWeekIndex: 0,
-          };
-        });
-      }
-    };
-
-    // Verificar a cada hora
-    const interval = setInterval(checkExpiredWeek, 60 * 60 * 1000);
-    
-    // Verificar imediatamente
-    checkExpiredWeek();
-
-    return () => clearInterval(interval);
-  }, [state.weeks]);
+  // Obter semana ativa
+  const activeWeek = useMemo(() => weeks.find(week => week.isActive), [weeks]);
 
   // Verificar se deve mostrar botão "Finalizar Semana"
   const shouldShowFinalizeButton = useMemo(() => {
     const today = new Date();
-    const currentWeek = state.weeks.find(week => week.isActive);
-    
+    const currentWeek = weeks.find(week => week.isActive);
     if (!currentWeek) return false;
-    
-    // Só mostra aos sábados e se a semana atual contém hoje
-    return isSaturday(today) && isSameWeek(today, currentWeek.startDate, { weekStartsOn: 0 });
-  }, [state.weeks]);
+    return isSaturday(today) && isSameWeek(today, parseISO(currentWeek.startDate), { weekStartsOn: 0 });
+  }, [weeks]);
 
-  // Verificar se pode iniciar nova semana (não há semana futura ativa)
-  const canStartNewWeek = useMemo(() => {
-    const today = new Date();
-    const activeWeek = state.weeks.find(week => week.isActive);
-    
-    if (!activeWeek) return false;
-    
-    // Pode iniciar nova semana se a semana atual ainda não foi finalizada
-    // e não há uma semana futura já ativa
-    return !activeWeek.isCompleted;
-  }, [state.weeks]);
+  // Verificar se pode iniciar nova semana (permitir várias semanas ativas)
+  const canStartNewWeek = useMemo(() => true, [weeks]);
 
   // Iniciar nova semana
-  const startNewWeek = () => {
-    setState(prev => {
-      const updatedWeeks = [...prev.weeks];
-      const activeWeek = updatedWeeks.find(week => week.isActive);
-      
-      if (!activeWeek) return prev;
-      
-      // Criar nova semana futura
-      const newWeekStart = addWeeks(activeWeek.startDate, 1);
-      
-      const newWeek: Week = {
-        id: `week-${format(newWeekStart, 'yyyy-MM-dd')}`,
-        startDate: newWeekStart,
-        endDate: endOfWeek(newWeekStart, { weekStartsOn: 0 }),
-        isActive: true,
-        isCompleted: false,
-        weekNumber: 1,
-      };
-
-      // Adicionar nova semana no início (acima da atual)
-      updatedWeeks.unshift(newWeek);
-
-      // Atualizar números das semanas
-      updatedWeeks.forEach((week, index) => {
-        week.weekNumber = index + 1;
-      });
-
-      // Remover semana mais antiga se exceder o limite
-      if (updatedWeeks.length > MAX_WEEKS) {
-        updatedWeeks.pop();
-      }
-
-      return {
-        ...prev,
-        weeks: updatedWeeks,
-        currentWeekIndex: 0,
-      };
-    });
-  };
-
-  // Finalizar semana atual (NÃO cria nova semana automaticamente)
-  const finalizeCurrentWeek = () => {
-    setState(prev => {
-      const updatedWeeks = [...prev.weeks];
-      
-      // Marcar semana atual como finalizada
-      const currentWeekIndex = updatedWeeks.findIndex(week => week.isActive);
-      if (currentWeekIndex !== -1) {
-        updatedWeeks[currentWeekIndex] = {
-          ...updatedWeeks[currentWeekIndex],
-          isActive: false,
-          isCompleted: true,
-        };
-      }
-
-      // Atualizar números das semanas
-      updatedWeeks.forEach((week, index) => {
-        week.weekNumber = index + 1;
-      });
-
-      return {
-        ...prev,
-        weeks: updatedWeeks,
-        currentWeekIndex: 0,
-      };
+  const startNewWeek = async () => {
+    // Basear nova semana na última semana ativa ou na semana atual
+    let baseDate = new Date();
+    const lastActive = weeks.find(week => week.isActive);
+    if (lastActive) {
+      baseDate = parseISO(lastActive.startDate);
+      baseDate = addWeeks(baseDate, 1);
+    } else if (weeks.length > 0) {
+      // Se não houver semana ativa, pegar a mais recente
+      const sorted = [...weeks].sort((a, b) => parseISO(b.startDate).getTime() - parseISO(a.startDate).getTime());
+      baseDate = addWeeks(parseISO(sorted[0].startDate), 1);
+    }
+    const startDate = startOfWeek(baseDate, { weekStartsOn: 0 });
+    const endDate = endOfWeek(startDate, { weekStartsOn: 0 });
+    const weekNumber = weeks.length > 0 ? Math.max(...weeks.map(w => w.weekNumber)) + 1 : 1;
+    await createWeek.mutateAsync({
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      weekNumber,
     });
   };
 
   // Gerar dias da semana para uma semana específica
-  const getWeekDays = (week: Week): WeekDay[] => {
+  const getWeekDays = (week: ApiWeek): WeekDay[] => {
     const days: WeekDay[] = [];
-    const today = new Date();
-    
     for (let i = 0; i < 7; i++) {
-      const date = new Date(week.startDate);
+      const date = new Date(parseISO(week.startDate));
       date.setDate(date.getDate() + i);
-      
       days.push({
         date,
         dayOfWeek: format(date, 'EEE', { locale: ptBR }),
@@ -201,21 +62,29 @@ export const useWeekManagement = () => {
         isPastWeek: !week.isActive,
       });
     }
-    
     return days;
   };
 
-  // Obter semana ativa
-  const getActiveWeek = () => state.weeks.find(week => week.isActive);
+  // Finalizar semana atual (NÃO cria nova semana automaticamente)
+  // (Implementação futura: PATCH /weeks/:id/complete)
+  const finalizeCurrentWeek = () => {
+    // TODO: Implementar chamada PATCH /weeks/:id/complete
+  };
+
+  const deleteWeek = async (id: string) => {
+    await deleteWeekMutation.mutateAsync(id);
+  };
 
   return {
-    weeks: state.weeks,
-    activeWeek: getActiveWeek(),
+    weeks,
+    activeWeek,
     shouldShowFinalizeButton,
     canStartNewWeek,
     finalizeCurrentWeek,
     startNewWeek,
     getWeekDays,
     maxWeeks: MAX_WEEKS,
+    isLoading: isLoadingWeeks,
+    deleteWeek,
   };
 }; 

@@ -44,6 +44,8 @@ const WeeklyScheduleManager = () => {
     finalizeCurrentWeek,
     startNewWeek,
     getWeekDays,
+    isLoading: isLoadingWeeks,
+    deleteWeek
   } = useWeekManagement();
   
   const getToday = () => format(new Date(), 'yyyy-MM-dd');
@@ -182,23 +184,38 @@ const WeeklyScheduleManager = () => {
     setFinalizeDialog(true);
   };
 
-  const confirmFinalizeWeek = () => {
-    finalizeCurrentWeek();
-    setFinalizeDialog(false);
-    
-    toast({
-      title: '✅ Semana finalizada!',
-      description: 'A semana foi finalizada com sucesso.',
-    });
+  const confirmFinalizeWeek = async () => {
+    if (!activeWeek) return;
+    try {
+      await deleteWeek(activeWeek.id);
+      setFinalizeDialog(false);
+      toast({
+        title: '✅ Semana finalizada!',
+        description: 'A semana foi removida com sucesso.',
+      });
+    } catch (error) {
+      toast({
+        title: '❌ Erro ao finalizar semana',
+        description: error instanceof Error ? error.message : 'Não foi possível remover a semana. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const handleStartNewWeek = () => {
-    startNewWeek();
-    
-    toast({
-      title: '✅ Nova semana iniciada!',
-      description: 'Uma nova semana foi adicionada à sua agenda.',
-    });
+  const handleStartNewWeek = async () => {
+    try {
+      await startNewWeek();
+      toast({
+        title: '✅ Nova semana iniciada!',
+        description: 'Uma nova semana foi adicionada à sua agenda.',
+      });
+    } catch (error) {
+      toast({
+        title: '❌ Erro ao iniciar nova semana',
+        description: error instanceof Error ? error.message : 'Não foi possível criar a semana. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const resetForm = () => {
@@ -242,7 +259,7 @@ const WeeklyScheduleManager = () => {
     OUTRO: '📝 Outro',
   };
 
-  const isLoading = isLoadingSchedule || isLoadingDays || isLoadingTypes;
+  const isLoading = isLoadingSchedule || isLoadingDays || isLoadingTypes || isLoadingWeeks;
 
   if (isLoading) {
     return (
@@ -298,9 +315,9 @@ const WeeklyScheduleManager = () => {
                   {week.isActive ? 'Semana Ativa' : `Semana ${week.weekNumber}`}
                 </h2>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-slate-400">
-                    {format(week.startDate, 'dd/MM', { locale: ptBR })} - {format(week.endDate, 'dd/MM', { locale: ptBR })}
-                  </span>
+                <span className="text-sm text-slate-400">
+                  {format(week.startDate, 'dd/MM', { locale: ptBR })} - {format(week.endDate, 'dd/MM', { locale: ptBR })}
+                </span>
                   {/* Botão Finalizar Semana - apenas para semanas ativas */}
                   {week.isActive && (
                     <Button
@@ -548,8 +565,8 @@ const WeeklyScheduleManager = () => {
         isOpen={finalizeDialog}
         onClose={() => setFinalizeDialog(false)}
         onConfirm={confirmFinalizeWeek}
-        currentWeekEnd={activeWeek?.endDate || new Date()}
-        nextWeekStart={activeWeek ? new Date(activeWeek.endDate.getTime() + 24 * 60 * 60 * 1000) : new Date()}
+        currentWeekEnd={activeWeek?.endDate ? new Date(activeWeek.endDate) : new Date()}
+        nextWeekStart={activeWeek ? new Date(new Date(activeWeek.endDate).getTime() + 24 * 60 * 60 * 1000) : new Date()}
         isLoading={false}
       />
     </div>

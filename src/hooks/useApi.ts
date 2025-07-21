@@ -513,4 +513,72 @@ export const useUpdateNote = () => {
   });
 };
 
+// ===== HOOKS DE SEMANAS =====
+
+export interface Week {
+  id: string;
+  userId: string;
+  startDate: string; // ISO string
+  endDate: string;   // ISO string
+  isActive: boolean;
+  isCompleted: boolean;
+  weekNumber: number;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string | null;
+}
+
+export interface CreateWeekRequest {
+  startDate: string; // ISO string
+  endDate: string;   // ISO string
+  weekNumber: number;
+}
+
+export const useWeeks = () => {
+  return useQuery({
+    queryKey: ['weeks'],
+    queryFn: async () => {
+      const response = await apiRequest<Week[]>('/weeks');
+      if (response.error) throw new Error(response.error);
+      return response.data!;
+    },
+    staleTime: 0,
+    gcTime: 0,
+    enabled: isAuthenticated(),
+  });
+};
+
+export const useCreateWeek = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: CreateWeekRequest) => {
+      const response = await apiRequest<Week>('/weeks', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      if (response.error) throw new Error(response.error);
+      return response.data!;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['weeks'] });
+    },
+  });
+};
+
+export const useDeleteWeek = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest<{ message: string }>(`/weeks/${id}`, {
+        method: 'DELETE',
+      });
+      if (response.error) throw new Error(response.error);
+      return response.data!;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['weeks'] });
+    },
+  });
+};
+
  
