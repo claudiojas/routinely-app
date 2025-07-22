@@ -10,6 +10,7 @@ const NotePad = () => {
   const { weeks } = useWeekManagement();
   const [isEditing, setIsEditing] = useState(false);
   const [content, setContent] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   // Encontrar a semana e o dia da semana
   const selected = new Date(selectedDate + 'T12:00:00');
@@ -28,11 +29,16 @@ const NotePad = () => {
   const upsertComment = useUpsertWeekDayComment(weekId);
 
   const handleSave = async () => {
+    if (content.length > 255) {
+      setError('A nota não pode ter mais de 255 caracteres.');
+      return;
+    }
+    setError(null);
     try {
       await upsertComment.mutateAsync({ dayOfWeek, comment: content });
       setIsEditing(false);
     } catch (error) {
-      console.error('Erro ao salvar nota:', error);
+      setError('Erro ao salvar nota: ' + (error instanceof Error ? error.message : 'Comentário inválido'));
     }
   };
 
@@ -63,6 +69,7 @@ const NotePad = () => {
           <p className="text-sm text-gray-500 mt-1">
             {formatDate(selectedDate)}
           </p>
+          <p className="text-xs text-gray-500 mt-1">Limite: 255 caracteres por nota.</p>
         </div>
         {!isEditing ? (
           <button
@@ -92,14 +99,27 @@ const NotePad = () => {
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Digite suas notas, ideias ou reflexões do dia..."
+            placeholder="Digite suas notas, ideias ou reflexões do dia... (máx. 255 caracteres)"
+            maxLength={255}
             className="w-full h-64 p-4 border border-gray-300 text-gray-900 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             autoFocus
           />
+          <div className="flex justify-between items-center text-xs mt-1">
+            <span className={content.length > 225 ? 'text-yellow-600' : 'text-gray-400'}>
+              {content.length}/255 caracteres
+            </span>
+            {content.length > 225 && (
+              <span className="text-yellow-600">Atenção: limite próximo do máximo permitido.</span>
+            )}
+          </div>
+          {error && (
+            <div className="text-red-600 text-xs mt-1">{error}</div>
+          )}
           <div className="flex justify-end space-x-3">
             <button
               onClick={() => {
                 setIsEditing(false);
+                setError(null);
               }}
               className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
@@ -108,7 +128,7 @@ const NotePad = () => {
           </div>
         </div>
       ) : (
-        <div className="min-h-[200px]">
+        <div className="min-h-[50px]">
           {todayComment?.comment ? (
             <div className="prose prose-sm max-w-none">
               <pre className="whitespace-pre-wrap text-slate-800 font-sans leading-relaxed">
