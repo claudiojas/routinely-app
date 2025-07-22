@@ -213,4 +213,13 @@ export interface CreateNotificationRequest {
   body: string
   type: Notification['type']
   scheduledFor?: string
+}
+
+export interface WeekDayComment {
+  id: string;
+  weekId: string;
+  dayOfWeek: number; // 0=Domingo, ... 6=Sábado
+  comment: string;
+  createdAt: string;
+  updatedAt: string;
 } 

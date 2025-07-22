@@ -2,37 +2,34 @@
 import { useState, useEffect } from 'react';
 import { Save, Edit3 } from 'lucide-react';
 import { useStore } from '../store/useStore';
-import { useNotesByDate, useCreateNote, useUpdateNote } from '../hooks/useApi';
+import { useWeekManagement } from '../hooks/useWeekManagement';
+import { useWeekComments, useUpsertWeekDayComment } from '../hooks/useApi';
 
 const NotePad = () => {
   const { selectedDate } = useStore();
-  const { data: notes = [], isLoading } = useNotesByDate(selectedDate);
-  const createNote = useCreateNote();
-  const updateNote = useUpdateNote();
-  
-  const [content, setContent] = useState('');
+  const { weeks } = useWeekManagement();
   const [isEditing, setIsEditing] = useState(false);
-  
-  const todayNote = notes[0]; // Pegar a primeira nota do dia
+  const [content, setContent] = useState('');
 
-  useEffect(() => {
-    setContent(todayNote?.content || '');
-    setIsEditing(false);
-  }, [todayNote, selectedDate]);
+  // Encontrar a semana e o dia da semana
+  const selected = new Date(selectedDate + 'T12:00:00');
+  const week = weeks.find(w => {
+    const start = new Date(w.startDate);
+    const end = new Date(w.endDate);
+    return selected >= start && selected <= end;
+  });
+  const weekId = week?.id;
+  const dayOfWeek = selected.getDay();
+
+  // Buscar comentários da semana
+  const { data: comments = [], isLoading } = useWeekComments(weekId);
+  const todayComment = comments.find(c => c.dayOfWeek === dayOfWeek);
+  
+  const upsertComment = useUpsertWeekDayComment(weekId);
 
   const handleSave = async () => {
     try {
-      if (todayNote) {
-        await updateNote.mutateAsync({
-          id: todayNote.id,
-          content
-        });
-      } else {
-        await createNote.mutateAsync({
-          content,
-          date: selectedDate,
-        });
-      }
+      await upsertComment.mutateAsync({ dayOfWeek, comment: content });
       setIsEditing(false);
     } catch (error) {
       console.error('Erro ao salvar nota:', error);
@@ -77,15 +74,15 @@ const NotePad = () => {
         ) : (
           <button
             onClick={handleSave}
-            disabled={createNote.isPending || updateNote.isPending}
+            disabled={upsertComment.isPending}
             className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2 disabled:opacity-50"
           >
-            {createNote.isPending || updateNote.isPending ? (
+            {upsertComment.isPending ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
               <Save className="h-4 w-4" />
             )}
-            <span>{createNote.isPending || updateNote.isPending ? 'Salvando...' : 'Salvar'}</span>
+            <span>Salvar</span>
           </button>
         )}
       </div>
@@ -102,7 +99,6 @@ const NotePad = () => {
           <div className="flex justify-end space-x-3">
             <button
               onClick={() => {
-                setContent(todayNote?.content || '');
                 setIsEditing(false);
               }}
               className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -113,17 +109,17 @@ const NotePad = () => {
         </div>
       ) : (
         <div className="min-h-[200px]">
-          {content ? (
+          {todayComment?.comment ? (
             <div className="prose prose-sm max-w-none">
               <pre className="whitespace-pre-wrap text-slate-800 font-sans leading-relaxed">
-                {content}
+                {todayComment.comment}
               </pre>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-48 text-gray-400">
               <Edit3 className="h-12 w-12 mb-4" />
               <p className="text-center">
-                Clique no botão de editar para adicionar suas notas do dia
+              {todayComment?.comment || 'Clique no botão de editar para adicionar suas notas do dia'}
               </p>
             </div>
           )}

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth as useAuthContext } from '../contexts/AuthContext';
+import { WeekDayComment } from '../types/api';
 
 // Tipos baseados na API real
 export interface User {
@@ -581,4 +582,33 @@ export const useDeleteWeek = () => {
   });
 };
 
- 
+export const useUpsertWeekDayComment = (weekId?: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { dayOfWeek: number; comment: string }) => {
+      if (!weekId) throw new Error('weekId é obrigatório');
+      const response = await apiRequest<{ data: WeekDayComment }>(`/weeks/${weekId}/comments`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      if (response.error) throw new Error(response.error);
+      return response.data?.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['week-comments', weekId] });
+    },
+  });
+};
+
+export const useWeekComments = (weekId?: string) => {
+  return useQuery<WeekDayComment[]>({
+    queryKey: ['week-comments', weekId],
+    queryFn: async () => {
+      if (!weekId) return [];
+      const response = await apiRequest<WeekDayComment[]>(`/weeks/${weekId}/comments`);
+      if (response.error) throw new Error(response.error);
+      return response.data || [];
+    },
+    enabled: !!weekId,
+  });
+};

@@ -4,7 +4,7 @@ import { Check, Trash2, Edit } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { 
   useActivities, 
-  useUpdateActivity, 
+  // useUpdateActivity, 
   useDeleteActivity,
   useToggleActivity
 } from '../hooks/useApi';
@@ -29,7 +29,7 @@ const TaskList = () => {
   const { toast } = useToast();
   const { selectedDate } = useStore();
   const { data: activities = [], isLoading } = useActivities();
-  const updateActivity = useUpdateActivity();
+  // const updateActivity = useUpdateActivity();
   const deleteActivity = useDeleteActivity();
   const toggleActivity = useToggleActivity();
   
@@ -60,10 +60,7 @@ const TaskList = () => {
   // Filtrar apenas as atividades do dia selecionado
   const todayScheduleItems = weeklySchedule.filter(item => item.date === selectedDate);
   
-  // Debug: verificar se o filtro está funcionando
-  console.log('selectedDate:', selectedDate);
-  console.log('total activities:', activities.length);
-  console.log('filtered activities:', todayScheduleItems.length);
+  // Remover todos os logs de debug do arquivo
 
   const typeLabels = {
     study: 'Estudo',
@@ -82,10 +79,8 @@ const TaskList = () => {
   };
 
   const handleToggleComplete = async (id: string, completed: boolean) => {
-    console.log('Tentando fazer toggle para atividade:', id, 'completed:', completed);
     try {
       const result = await toggleActivity.mutateAsync(id);
-      console.log('Resposta da API:', result);
       
       toast({
         title: completed ? '❌ Tarefa desmarcada' : '✅ Tarefa concluída',
