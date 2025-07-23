@@ -1,12 +1,20 @@
-import { useWeeks, useCreateWeek, useDeleteWeek, Week as ApiWeek } from './useApi';
+import { useWeeks, useCreateWeek, useDeleteWeek } from './useApi';
 import { useMemo } from 'react';
 import { format, startOfWeek, endOfWeek, addWeeks, isSameWeek, isToday, isSaturday, isAfter, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { WeekDay } from '../types/weekManagement';
+import { Week, WeekDay, WeekManagementState } from '../types/api';
 
 const MAX_WEEKS = 4;
 
-export const useWeekManagement = () => {
+export const useWeekManagement = (): WeekManagementState & {
+  shouldShowFinalizeButton: boolean;
+  canStartNewWeek: boolean;
+  finalizeCurrentWeek: () => void;
+  startNewWeek: () => Promise<void>;
+  getWeekDays: (week: Week) => WeekDay[];
+  isLoading: boolean;
+  deleteWeek: (id: string) => Promise<void>;
+} => {
   const { data: weeks = [], isLoading: isLoadingWeeks } = useWeeks();
   const createWeek = useCreateWeek();
   const deleteWeekMutation = useDeleteWeek();
@@ -49,7 +57,7 @@ export const useWeekManagement = () => {
   };
 
   // Gerar dias da semana para uma semana específica
-  const getWeekDays = (week: ApiWeek): WeekDay[] => {
+  const getWeekDays = (week: Week): WeekDay[] => {
     const days: WeekDay[] = [];
     for (let i = 0; i < 7; i++) {
       const date = new Date(parseISO(week.startDate));

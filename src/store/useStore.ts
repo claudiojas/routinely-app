@@ -1,55 +1,7 @@
 import { create } from 'zustand';
+import { Task, Note, WeeklyScheduleItem as BaseWeeklyScheduleItem, TimeBlock, Store } from '../types/api';
 // Tipo para compatibilidade
-type WeeklyScheduleItem = {
-  id: string;
-  activity: string;
-  startTime: string;
-  endTime: string;
-  type: string;
-  dayOfWeek: string;
-  completed?: boolean;
-  notes?: string;
-};
-
-export interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  completed: boolean;
-  date: string;
-  type: 'study' | 'exercise' | 'work' | 'personal' | 'other';
-  isGoogleSynced?: boolean;
-  createdAt: Date;
-  notes?: string;
-}
-
-export interface TimeBlock {
-  id: string;
-  title: string;
-  type: 'study' | 'exercise' | 'work' | 'personal' | 'other';
-  day: string;
-  startTime: string;
-  endTime: string;
-  isGoogleSynced?: boolean;
-}
-
-export interface Note {
-  id: string;
-  content: string;
-  date: string;
-  createdAt: Date;
-}
-
-interface Store {
-  selectedDate: string;
-  
-  // UI actions
-  setSelectedDate: (date: string) => void;
-  
-  // Progress calculation
-  getWeeklyProgress: (tasks: Task[]) => number;
-  getTodayScheduleItems: (weeklySchedule: WeeklyScheduleItem[], date: string) => WeeklyScheduleItem[];
-}
+type WeeklyScheduleItem = BaseWeeklyScheduleItem & { isActive?: boolean; activity?: string; dayOfWeek?: string; notes?: string };
 
 const getCurrentDate = () => {
   const today = new Date();

@@ -1,102 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth as useAuthContext } from '../contexts/AuthContext';
-import { WeekDayComment } from '../types/api';
-
-// Tipos baseados na API real
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  preferences?: {
-    theme: 'light' | 'dark' | 'auto';
-    language: 'pt-BR' | 'en-US' | 'es';
-    notifications: boolean;
-    timezone?: string;
-    dateFormat?: string;
-  };
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface Activity {
-  id: string;
-  userId: string;
-  title: string;
-  description: string | null;
-  type: 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO';
-  startTime: string;
-  endTime: string;
-  date: string;
-  completed?: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface CreateUserRequest {
-  name: string;
-  email: string;
-  password: string;
-}
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface CreateActivityRequest {
-  title: string;
-  description?: string;
-  type: 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO';
-  startTime: string;
-  endTime: string;
-  date: string; // formato YYYY-MM-DD
-}
-
-export interface UpdateActivityRequest {
-  title?: string;
-  description?: string;
-  type?: 'PESSOAL' | 'TRABALHO' | 'ESTUDO' | 'SAUDE' | 'OUTRO';
-  startTime?: string;
-  endTime?: string;
-  date: string; // ⚠️ OBRIGATÓRIO - formato YYYY-MM-DD
-}
-
-export interface ApiResponse<T> {
-  data?: T;
-  error?: string;
-}
-
-export interface LoginResponse {
-  user: User;
-  token: string;
-}
-
-export interface UpdateProfileRequest {
-  name?: string;
-  avatar?: string;
-  preferences?: {
-    theme?: 'light' | 'dark' | 'auto';
-    language?: 'pt-BR' | 'en-US' | 'es';
-    notifications?: boolean;
-    timezone?: string;
-    dateFormat?: string;
-  };
-}
-
-export interface ChangePasswordRequest {
-  currentPassword: string;
-  newPassword: string;
-}
-
-export interface UserStats {
-  totalActivities: number;
-  completedActivities: number;
-  pendingActivities: number;
-  streakDays: number;
-  totalHours: number;
-  favoriteActivityType: string;
-}
+import {
+  User,
+  Task,
+  Note,
+  WeeklyScheduleItem,
+  WeekDayComment,
+  ApiResponse,
+  CreateActivityRequest,
+  UpdateActivityRequest,
+  LoginRequest,
+} from '../types/api';
 
 // Configuração da API usando fetch nativo
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -176,13 +90,13 @@ export const useLogin = () => {
   
   return useMutation({
     mutationFn: async (data: LoginRequest) => {
-      const response = await apiRequest<LoginResponse>('/userLogin', {
+      const response = await apiRequest<{ user: User; token: string }>('/userLogin', {
         method: 'POST',
         body: JSON.stringify(data),
       });
       
-      if (response.error) {
-        throw new Error(response.error);
+      if ((response as ApiResponseWithError<{ user: User; token: string }>).error) {
+        throw new Error((response as ApiResponseWithError<{ user: User; token: string }>).error);
       }
       
       return response.data!;
@@ -199,14 +113,14 @@ export const useSignUp = () => {
   const { login } = useAuthContext();
   
   return useMutation({
-    mutationFn: async (data: CreateUserRequest) => {
-      const response = await apiRequest<LoginResponse>('/user', {
+    mutationFn: async (data: { name: string; email: string; password: string }) => {
+      const response = await apiRequest<{ user: User; token: string }>('/user', {
         method: 'POST',
         body: JSON.stringify(data),
       });
       
-      if (response.error) {
-        throw new Error(response.error);
+      if ((response as ApiResponseWithError<{ user: User; token: string }>).error) {
+        throw new Error((response as ApiResponseWithError<{ user: User; token: string }>).error);
       }
       
       return response.data!;
@@ -238,9 +152,9 @@ export const useActivities = () => {
   return useQuery({
     queryKey: ['activities'],
     queryFn: async () => {
-      const response = await apiRequest<Activity[]>('/activities');
-      if (response.error) {
-        throw new Error(response.error);
+      const response = await apiRequest<Task[]>('/activities');
+      if ((response as ApiResponseWithError<Task[]>).error) {
+        throw new Error((response as ApiResponseWithError<Task[]>).error);
       }
       return response.data || [];
     },
@@ -253,13 +167,13 @@ export const useCreateActivity = () => {
   
   return useMutation({
     mutationFn: async (data: CreateActivityRequest) => {
-      const response = await apiRequest<Activity>('/activities', {
+      const response = await apiRequest<Task>('/activities', {
         method: 'POST',
         body: JSON.stringify(data),
       });
       
-      if (response.error) {
-        throw new Error(response.error);
+      if ((response as ApiResponseWithError<Task>).error) {
+        throw new Error((response as ApiResponseWithError<Task>).error);
       }
       
       return response.data!;
@@ -275,13 +189,13 @@ export const useUpdateActivity = () => {
   
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateActivityRequest }) => {
-      const response = await apiRequest<Activity>(`/activities/${id}`, {
+      const response = await apiRequest<Task>(`/activities/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       });
       
-      if (response.error) {
-        throw new Error(response.error);
+      if ((response as ApiResponseWithError<Task>).error) {
+        throw new Error((response as ApiResponseWithError<Task>).error);
       }
       
       return response.data!;
@@ -301,8 +215,8 @@ export const useDeleteActivity = () => {
         method: 'DELETE',
       });
       
-      if (response.error) {
-        throw new Error(response.error);
+      if ((response as ApiResponseWithError<void>).error) {
+        throw new Error((response as ApiResponseWithError<void>).error);
       }
     },
     onSuccess: () => {
@@ -316,12 +230,12 @@ export const useToggleActivity = () => {
   
   return useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest<Activity>(`/activities/${id}/toggle`, {
+      const response = await apiRequest<Task>(`/activities/${id}/toggle`, {
         method: 'PATCH',
       });
       
-      if (response.error) {
-        throw new Error(response.error);
+      if ((response as ApiResponseWithError<Task>).error) {
+        throw new Error((response as ApiResponseWithError<Task>).error);
       }
       
       return response.data!;
@@ -381,8 +295,8 @@ export const useUserProfile = () => {
     queryKey: ['user-profile'],
     queryFn: async () => {
       const response = await apiRequest<User>('/user/profile');
-      if (response.error) {
-        throw new Error(response.error);
+      if ((response as ApiResponseWithError<User>).error) {
+        throw new Error((response as ApiResponseWithError<User>).error);
       }
       return response.data!;
     },
@@ -400,8 +314,8 @@ export const useUpdateProfile = () => {
         body: JSON.stringify(data),
       });
       
-      if (response.error) {
-        throw new Error(response.error);
+      if ((response as ApiResponseWithError<User>).error) {
+        throw new Error((response as ApiResponseWithError<User>).error);
       }
       
       return response.data!;
@@ -421,8 +335,8 @@ export const useChangePassword = () => {
         body: JSON.stringify(data),
       });
       
-      if (response.error) {
-        throw new Error(response.error);
+      if ((response as ApiResponseWithError<{ message: string }>).error) {
+        throw new Error((response as ApiResponseWithError<{ message: string }>).error);
       }
       
       return response.data!;
@@ -435,8 +349,8 @@ export const useUserStats = () => {
     queryKey: ['user-stats'],
     queryFn: async () => {
       const response = await apiRequest<UserStats>('/user/stats');
-      if (response.error) {
-        throw new Error(response.error);
+      if ((response as ApiResponseWithError<UserStats>).error) {
+        throw new Error((response as ApiResponseWithError<UserStats>).error);
       }
       return response.data!;
     },
@@ -447,7 +361,7 @@ export const useUserStats = () => {
 // ===== HOOKS COMPATIBILIDADE (para manter componentes existentes) =====
 
 // Mapeamento de tipos da API real para os tipos antigos
-const mapActivityToLegacy = (activity: Activity) => ({
+const mapActivityToLegacy = (activity: Task) => ({
   id: activity.id,
   title: activity.title,
   description: activity.description || '',
@@ -540,7 +454,7 @@ export const useWeeks = () => {
     queryKey: ['weeks'],
     queryFn: async () => {
       const response = await apiRequest<Week[]>('/weeks');
-      if (response.error) throw new Error(response.error);
+      if ((response as ApiResponseWithError<Week[]>).error) throw new Error((response as ApiResponseWithError<Week[]>).error);
       return response.data!;
     },
     staleTime: 0,
@@ -557,7 +471,7 @@ export const useCreateWeek = () => {
         method: 'POST',
         body: JSON.stringify(data),
       });
-      if (response.error) throw new Error(response.error);
+      if ((response as ApiResponseWithError<Week>).error) throw new Error((response as ApiResponseWithError<Week>).error);
       return response.data!;
     },
     onSuccess: () => {
@@ -573,7 +487,7 @@ export const useDeleteWeek = () => {
       const response = await apiRequest<{ message: string }>(`/weeks/${id}`, {
         method: 'DELETE',
       });
-      if (response.error) throw new Error(response.error);
+      if ((response as ApiResponseWithError<{ message: string }>).error) throw new Error((response as ApiResponseWithError<{ message: string }>).error);
       return response.data!;
     },
     onSuccess: () => {
@@ -591,7 +505,7 @@ export const useUpsertWeekDayComment = (weekId?: string) => {
         method: 'POST',
         body: JSON.stringify(data),
       });
-      if (response.error) throw new Error(response.error);
+      if ((response as ApiResponseWithError<{ data: WeekDayComment }>).error) throw new Error((response as ApiResponseWithError<{ data: WeekDayComment }>).error);
       return response.data?.data;
     },
     onSuccess: () => {
@@ -606,7 +520,7 @@ export const useWeekComments = (weekId?: string) => {
     queryFn: async () => {
       if (!weekId) return [];
       const response = await apiRequest<WeekDayComment[]>(`/weeks/${weekId}/comments`);
-      if (response.error) throw new Error(response.error);
+      if ((response as ApiResponseWithError<WeekDayComment[]>).error) throw new Error((response as ApiResponseWithError<WeekDayComment[]>).error);
       return response.data || [];
     },
     enabled: !!weekId,

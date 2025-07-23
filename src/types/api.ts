@@ -22,7 +22,8 @@ export type WeeklyScheduleItem = {
   updatedAt: string;
 };
 export interface ApiResponse<T = unknown> {
-  data: T
+  data?: T;
+  error?: string;
   message?: string
   success: boolean
 }
@@ -33,13 +34,21 @@ export interface ApiError {
   code?: string
 }
 
-// Tipos para usuário
+// Usuário
 export interface User {
-  id: string
-  email: string
-  name: string
-  createdAt: string
-  updatedAt: string
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  preferences?: {
+    theme: 'light' | 'dark' | 'auto';
+    language: 'pt-BR' | 'en-US' | 'es';
+    notifications: boolean;
+    timezone?: string;
+    dateFormat?: string;
+  };
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface LoginRequest {
@@ -83,19 +92,17 @@ export interface UpdateActivityRequest {
   date: string; // ⚠️ OBRIGATÓRIO - formato YYYY-MM-DD
 }
 
-// Tipos para tarefas
+// Task
 export interface Task {
-  id: string
-  title: string
-  description?: string
-  completed: boolean
-  date: string
-  type: 'study' | 'exercise' | 'work' | 'personal' | 'other'
-  isGoogleSynced?: boolean
-  createdAt: string
-  updatedAt: string
-  notes?: string
-  userId: string
+  id: string;
+  title: string;
+  description?: string;
+  completed: boolean;
+  date: string;
+  type: 'study' | 'exercise' | 'work' | 'personal' | 'other';
+  isGoogleSynced?: boolean;
+  createdAt: string;
+  notes?: string;
 }
 
 export interface CreateTaskRequest {
@@ -111,14 +118,12 @@ export interface UpdateTaskRequest extends Partial<CreateTaskRequest> {
   isGoogleSynced?: boolean
 }
 
-// Tipos para notas
+// Note
 export interface Note {
-  id: string
-  content: string
-  date: string
-  createdAt: string
-  updatedAt: string
-  userId: string
+  id: string;
+  content: string;
+  date: string;
+  createdAt: string;
 }
 
 export interface CreateNoteRequest {
@@ -128,6 +133,20 @@ export interface CreateNoteRequest {
 
 export interface UpdateNoteRequest {
   content: string
+}
+
+// Week
+export interface Week {
+  id: string;
+  userId: string;
+  startDate: string; // ISO string
+  endDate: string;   // ISO string
+  isActive: boolean;
+  isCompleted: boolean;
+  weekNumber: number;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string | null;
 }
 
 // Tipos para paginação
@@ -222,4 +241,49 @@ export interface WeekDayComment {
   comment: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface WeekDay {
+  date: Date;
+  dayOfWeek: string;
+  isToday: boolean;
+  isCurrentWeek: boolean;
+  isPastWeek: boolean;
+}
+
+export interface WeekManagementState {
+  weeks: Week[];
+  currentWeekIndex: number;
+  maxWeeks: number;
+  activeWeek?: Week;
+}
+
+export interface FinalizeWeekRequest {
+  weekId: string;
+  completedAt: Date;
+}
+
+export interface TimeBlock {
+  id: string;
+  title: string;
+  type: 'study' | 'exercise' | 'work' | 'personal' | 'other';
+  day: string;
+  startTime: string;
+  endTime: string;
+  isGoogleSynced?: boolean;
+}
+
+export interface Store {
+  selectedDate: string;
+  setSelectedDate: (date: string) => void;
+  getWeeklyProgress: (tasks: Task[]) => number;
+  getTodayScheduleItems: (weeklySchedule: WeeklyScheduleItem[], date: string) => WeeklyScheduleItem[];
+}
+
+export interface DeleteConfirmationDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  itemName: string;
+  isLoading?: boolean;
 } 
