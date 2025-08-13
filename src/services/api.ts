@@ -1,36 +1,31 @@
 // Serviço de API centralizado para toda a aplicação
 import {
   WeeklyScheduleItem,
-  CreateScheduleItemRequest,
-  UpdateScheduleItemRequest,
+  CreateWeeklyScheduleRequest,
+  UpdateWeeklyScheduleRequest,
   Task,
   CreateTaskRequest,
   UpdateTaskRequest,
   TimeBlock,
-  CreateTimeBlockRequest,
-  UpdateTimeBlockRequest,
   Note,
   CreateNoteRequest,
   UpdateNoteRequest,
   User,
   LoginRequest,
-  SignUpRequest,
+  RegisterRequest,
   AuthResponse,
   GoogleCalendarEvent,
   GoogleCalendarSyncRequest,
   AnalyticsData,
-  WeeklyStats,
-  MonthlyStats,
   ApiResponse,
   PaginatedResponse,
-  ScheduleFilters,
+  WeeklyScheduleFilters,
   TaskFilters,
-  NoteFilters,
   ApiError,
 } from '../types/api';
 
 // Configuração da API
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 const API_TIMEOUT = 10000; // 10 segundos
 
 // Classe para gerenciar tokens de autenticação
@@ -164,7 +159,7 @@ class ApiService {
 
       if (response.ok) {
         const data: AuthResponse = await response.json();
-        this.tokenManager.setTokens(data.accessToken, data.refreshToken);
+        this.tokenManager.setTokens(data.token, data.refreshToken);
         return true;
       }
     } catch (error) {
@@ -184,20 +179,20 @@ class ApiService {
     });
     
     if (response.success && response.data) {
-      this.tokenManager.setTokens(response.data.accessToken, response.data.refreshToken);
+      this.tokenManager.setTokens(response.data.token, response.data.refreshToken);
     }
     
     return response.data;
   }
 
-  async signUp(userData: SignUpRequest): Promise<AuthResponse> {
+  async signUp(userData: RegisterRequest): Promise<AuthResponse> {
     const response = await this.request<AuthResponse>('/auth/signup', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
     
     if (response.success && response.data) {
-      this.tokenManager.setTokens(response.data.accessToken, response.data.refreshToken);
+      this.tokenManager.setTokens(response.data.token, response.data.refreshToken);
     }
     
     return response.data;
@@ -219,7 +214,7 @@ class ApiService {
   }
 
   // ===== AGENDA SEMANAL =====
-  async getWeeklySchedule(filters?: ScheduleFilters): Promise<WeeklyScheduleItem[]> {
+  async getWeeklySchedule(filters?: WeeklyScheduleFilters): Promise<WeeklyScheduleItem[]> {
     const params = new URLSearchParams();
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
@@ -233,12 +228,12 @@ class ApiService {
     return response.data;
   }
 
-  async getScheduleByDay(dayOfWeek: WeeklyScheduleItem['dayOfWeek']): Promise<WeeklyScheduleItem[]> {
+  async getScheduleByDay(dayOfWeek: number): Promise<WeeklyScheduleItem[]> {
     const response = await this.request<WeeklyScheduleItem[]>(`/weekly-schedule/day/${dayOfWeek}`);
     return response.data;
   }
 
-  async createScheduleItem(item: CreateScheduleItemRequest): Promise<WeeklyScheduleItem> {
+  async createScheduleItem(item: CreateWeeklyScheduleRequest): Promise<WeeklyScheduleItem> {
     const response = await this.request<WeeklyScheduleItem>('/weekly-schedule', {
       method: 'POST',
       body: JSON.stringify(item),
@@ -246,7 +241,7 @@ class ApiService {
     return response.data;
   }
 
-  async updateScheduleItem(id: string, updates: UpdateScheduleItemRequest): Promise<WeeklyScheduleItem> {
+  async updateScheduleItem(id: string, updates: UpdateWeeklyScheduleRequest): Promise<WeeklyScheduleItem> {
     const response = await this.request<WeeklyScheduleItem>(`/weekly-schedule/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
@@ -320,7 +315,7 @@ class ApiService {
     return response.data;
   }
 
-  async createTimeBlock(block: CreateTimeBlockRequest): Promise<TimeBlock> {
+  async createTimeBlock(block: Omit<TimeBlock, 'id' | 'createdAt'>): Promise<TimeBlock> {
     const response = await this.request<TimeBlock>('/time-blocks', {
       method: 'POST',
       body: JSON.stringify(block),
@@ -328,7 +323,7 @@ class ApiService {
     return response.data;
   }
 
-  async updateTimeBlock(id: string, updates: UpdateTimeBlockRequest): Promise<TimeBlock> {
+  async updateTimeBlock(id: string, updates: Partial<Omit<TimeBlock, 'id' | 'createdAt'>>): Promise<TimeBlock> {
     const response = await this.request<TimeBlock>(`/time-blocks/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
@@ -341,7 +336,7 @@ class ApiService {
   }
 
   // ===== NOTAS =====
-  async getNotes(filters?: NoteFilters): Promise<Note[]> {
+  async getNotes(filters?: PaginatedResponse<unknown> | { date?: string; search?: string }): Promise<Note[]> {
     const params = new URLSearchParams();
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
@@ -399,13 +394,13 @@ class ApiService {
     return response.data;
   }
 
-  async getWeeklyStats(): Promise<WeeklyStats> {
-    const response = await this.request<WeeklyStats>('/analytics/weekly');
+  async getWeeklyStats(): Promise<AnalyticsData> {
+    const response = await this.request<AnalyticsData>('/analytics/weekly');
     return response.data;
   }
 
-  async getMonthlyStats(): Promise<MonthlyStats> {
-    const response = await this.request<MonthlyStats>('/analytics/monthly');
+  async getMonthlyStats(): Promise<AnalyticsData> {
+    const response = await this.request<AnalyticsData>('/analytics/monthly');
     return response.data;
   }
 
