@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { useLogin } from '../hooks/useApi';
 import { validateLogin } from '../utils/validation';
 import { toast } from 'sonner';
 import { FcGoogle } from 'react-icons/fc';
+import logo from '../assets/logo_routinely.png'
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -64,7 +65,7 @@ const Login = () => {
           {/* Header */}
           <div className="text-center space-y-4">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl mb-4 shadow-lg">
-              <Calendar className="h-8 w-8 text-white" />
+              <img src={logo} alt="Logotipo da aplicação" />
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
               Routinely
@@ -77,7 +78,7 @@ const Login = () => {
             <div className="w-32 h-32 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 shadow-inner">
               <div className="text-center space-y-2">
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl mx-auto flex items-center justify-center">
-                  <Calendar className="h-6 w-6 text-white" />
+                    <img src={logo} alt="Logotipo da aplicação" />
                 </div>
                 <div className="flex space-x-1 justify-center pt-1">
                   <div className="w-2 h-2 bg-blue-400 rounded-full" />
