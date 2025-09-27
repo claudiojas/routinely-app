@@ -1,7 +1,7 @@
 # 🗓️ Routinely - Sua Agenda Semanal Inteligente
 
 **Desenvolvido pela Agência Estudio Code**  
-Contato: contato.estudiocode@gmail.com
+Contato: claudiojasoares.dev@gmail.com
 
 ---
 
@@ -67,9 +67,12 @@ O Routinely foi desenvolvido com uma arquitetura moderna, focada em performance,
   - Web App Manifest (instalação nativa)
 
 > **Nota:** Detalhes técnicos, endpoints e integrações avançadas estão documentados em arquivos específicos na pasta `/doc`.
+> > **Nota:** Para melhor uso da aplicação ultilize também a api `https://github.com/claudiojas/routinely-api` O servidor precisa estar ativo para que o frontend funcione corretamente.
 
 
 
 **Routinely — Organize sua semana, conquiste seus objetivos!**
 
-Desenvolvido com ❤️ pela Agência Estudio Code
+Desenvolvido com ❤️ por Cláudio Soares
+
+linkedin: https://www.linkedin.com/in/claudio-soares-dev/
