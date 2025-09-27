@@ -77,8 +77,6 @@ routinely-app/
 #### 2. **Dashboard Principal**
 - Layout responsivo com grid system
 - Exibe **apenas as tarefas do dia**, barra de progresso e bloco de notas
-- ❌ Não exibe mais DatePicker
-- ❌ Não exibe mais Google Calendar
 - **Status**: Atualizado para foco total em rotina diária
 
 #### 3. **Gerenciamento de Agenda Semanal**
@@ -103,10 +101,6 @@ routinely-app/
 - Instalação nativa em dispositivos móveis
 - Ícones em diferentes tamanhos
 - Funcionalidade offline básica
-
-#### 6. **Integração Google Calendar**
-- ❌ Removida do MVP
-- **Status**: Não faz parte do escopo atual
 
 ### 🔄 Funcionalidades em Desenvolvimento
 
