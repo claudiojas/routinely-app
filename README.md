@@ -68,7 +68,7 @@ O Routinely foi desenvolvido com uma arquitetura moderna, focada em performance,
 
 > **Nota:** Detalhes técnicos, endpoints e integrações avançadas estão documentados em arquivos específicos na pasta `/doc`.
 > > **Nota:** Para melhor uso da aplicação ultilize também a api `https://github.com/claudiojas/routinely-api` O servidor precisa estar ativo para que o frontend funcione corretamente.
-
+> > **API** https://github.com/claudiojas/routinely-api
 
 
 **Routinely — Organize sua semana, conquiste seus objetivos!**
